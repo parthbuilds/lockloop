@@ -61,6 +61,7 @@ export interface TimelineMilestone {
     url: string;
     meta: string;
   }[];
+  tags?: string[];
 }
 
 export interface MutualAmendment {
@@ -119,6 +120,7 @@ const INITIAL_MILESTONES: TimelineMilestone[] = [
       { type: "git", title: "Migration: Init multi-tenant RLS", url: "#", meta: "git: 3a992e1" },
       { type: "loom", title: "Database Schema Walkthrough (16:9)", url: "#", meta: "14.2 mins" },
     ],
+    tags: ["database", "prisma", "rls"],
   },
   {
     id: "m2",
@@ -154,6 +156,7 @@ const INITIAL_MILESTONES: TimelineMilestone[] = [
       { type: "loom", title: "NextAuth OAuth Callback Demo (1080p)", url: "#", meta: "18.5 mins" },
       { type: "git", title: "feat(auth): next-auth google callback", url: "#", meta: "git: 8c3f20a" },
     ],
+    tags: ["auth", "nextauth", "jwt"],
   },
   {
     id: "m3",
@@ -180,6 +183,7 @@ const INITIAL_MILESTONES: TimelineMilestone[] = [
     proofArtifacts: [
       { type: "git", title: "feat(escrow): stripe connect express endpoints", url: "#", meta: "git: 9a2f180" },
     ],
+    tags: ["stripe", "escrow-vault", "webhooks"],
   },
   {
     id: "m4",
@@ -202,6 +206,7 @@ const INITIAL_MILESTONES: TimelineMilestone[] = [
       { id: "d13", title: "Resource vault with download audit trail", completed: false },
       { id: "d14", title: "Automated IP transfer receipt generation", completed: false },
     ],
+    tags: ["scope-firewall", "ip-transfer", "security"],
   },
   {
     id: "m5",
@@ -224,6 +229,7 @@ const INITIAL_MILESTONES: TimelineMilestone[] = [
       { id: "d16", title: "Playwright automated test suite (95% coverage)", completed: false },
       { id: "d17", title: "Production environment DNS & SSL cutover", completed: false },
     ],
+    tags: ["security-audit", "playwright", "production"],
   },
 ];
 
@@ -260,7 +266,6 @@ export function MilestoneProjectTimeline({
   const [milestones, setMilestones] = useState<TimelineMilestone[]>(INITIAL_MILESTONES);
   const [totalMonths, setTotalMonths] = useState<number>(8);
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string>("m2");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
 
   // Centered Detail Popup Modal (Replacing side-drawer)
   const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
@@ -328,16 +333,6 @@ export function MilestoneProjectTimeline({
     };
   });
 
-  // Filter matching helper: Highlights matching rows instead of destroying the timeline layout
-  const isMilestoneMatchingFilter = (m: TimelineMilestone) => {
-    if (filterStatus === "all") return true;
-    if (filterStatus === "active") return m.status === "in_progress" || m.status === "in_review";
-    if (filterStatus === "completed") return m.status === "completed";
-    if (filterStatus === "proposed") return m.status === "proposed";
-    return true;
-  };
-
-  const matchingCount = milestones.filter(isMilestoneMatchingFilter).length;
 
   // Deliverable checkbox toggle
   const handleToggleDeliverable = (milestoneId: string, deliverableId: string) => {
@@ -629,45 +624,6 @@ export function MilestoneProjectTimeline({
             </Button>
           </div>
         </div>
-
-        {/* Filter Pills with Highlight Focus Mode (Preserves Full 8-Month Roadmap Context) */}
-        <div className="flex items-center justify-between border-t border-[#F1F3F6] pt-2.5 text-xs text-[#6B7280]">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-semibold text-[#4B5563]">Roadmap View:</span>
-            {[
-              { id: "all", label: "All Phases (5)" },
-              { id: "active", label: "Active & Review (2)" },
-              { id: "completed", label: "Completed (1)" },
-              { id: "proposed", label: "Upcoming (2)" },
-            ].map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setFilterStatus(f.id)}
-                className={cn(
-                  "px-2.5 py-1 rounded-md transition-all cursor-pointer font-medium",
-                  filterStatus === f.id
-                    ? "bg-[#111827] text-white shadow-2xs font-semibold"
-                    : "bg-[#F4F5F7] hover:bg-[#E5E7EB] text-[#4B5563]"
-                )}
-              >
-                {f.label}
-              </button>
-            ))}
-
-            {filterStatus !== "all" && (
-              <button
-                onClick={() => setFilterStatus("all")}
-                className="text-[11px] text-[#2D6606] hover:underline font-semibold ml-1 cursor-pointer flex items-center gap-0.5"
-              >
-                <span>Reset to All ({matchingCount} highlighted)</span>
-              </button>
-            )}
-          </div>
-
-          <span className="text-[11px] font-sans text-[#6B7280] hidden md:inline">
-            💡 Click any milestone bar to view deliverables, contractual revision limits, and proof files.
-          </span>
-        </div>
       </div>
 
       {/* ========================================================================= */}
@@ -740,12 +696,12 @@ export function MilestoneProjectTimeline({
 
         {/* Scrollable Gantt Canvas with Proper Column Widths & Full Vertical Stretch */}
         <div className="flex-1 min-h-0 overflow-auto custom-scrollbar flex flex-col">
-          <div className="min-w-[1340px] flex-1 flex flex-col">
+          <div className="min-w-[1540px] flex-1 flex flex-col">
             {/* Month Axis Header (Sticky at top) */}
             <div
               className="grid border-b border-[#E5E7EB] bg-[#F8F9FA] text-center text-xs font-bold text-[#4B5563] select-none sticky top-0 z-40 shrink-0 shadow-xs"
               style={{
-                gridTemplateColumns: `270px repeat(${totalMonths}, minmax(130px, 1fr))`,
+                gridTemplateColumns: `340px repeat(${totalMonths}, minmax(150px, 1fr))`,
               }}
             >
               <div className="py-2.5 px-4 border-r border-[#E5E7EB] text-[11px] text-[#6B7280] font-bold text-left bg-[#F4F5F7]">
@@ -775,8 +731,6 @@ export function MilestoneProjectTimeline({
               {milestones.map((m) => {
                 const isSelected = m.id === selectedMilestoneId;
                 const isHardCapped = m.usedIterations >= m.maxIterations;
-                const matches = isMilestoneMatchingFilter(m);
-                const isDimmed = filterStatus !== "all" && !matches;
                 const monthSpan = Math.max(1, m.endMonth - m.startMonth + 1);
                 const statusConfig = getJiraMilestoneStatus(m.status);
 
@@ -785,47 +739,52 @@ export function MilestoneProjectTimeline({
                     key={m.id}
                     onClick={() => openMilestoneModal(m.id, "overview")}
                     className={cn(
-                      "grid items-center transition-all cursor-pointer group min-h-[92px] sm:min-h-[100px]",
-                      isDimmed
-                        ? "opacity-35 grayscale-[50%] hover:opacity-75 bg-[#F9FAFB]/40"
-                        : "hover:bg-[#FAFBFD]",
-                      matches && filterStatus !== "all" && "bg-[#F0FDF4]/70 ring-1 ring-[#86EFAC]",
+                      "grid items-center transition-all cursor-pointer group min-h-[105px]",
+                      "hover:bg-[#FAFBFD]",
                       isSelected && "bg-[#F0FDF4]/90"
                     )}
                     style={{
-                      gridTemplateColumns: `270px repeat(${totalMonths}, minmax(130px, 1fr))`,
+                      gridTemplateColumns: `340px repeat(${totalMonths}, minmax(150px, 1fr))`,
                     }}
                   >
-                    {/* Left Meta Column: 270px wide, Jira Epic format with Key, Title, Status & Escrow */}
-                    <div className="p-3.5 border-r border-[#E5E7EB] bg-[#FAFAFA] group-hover:bg-[#F4F5F7] transition-colors flex flex-col justify-center h-full">
-                      <div className="flex items-center justify-between gap-1.5">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="px-1.5 py-0.5 rounded bg-[#0052CC] text-white font-mono font-bold text-[10px] shrink-0 shadow-2xs">
+                    {/* Left Meta Column: 340px wide, Jira Epic format with Key, Title, Status, Dates & Tags */}
+                    <div className="p-3 sm:px-4 border-r border-[#E5E7EB] bg-[#FAFAFA] group-hover:bg-[#F4F5F7] transition-colors flex flex-col justify-between h-full gap-2">
+                      {/* Row 1: Key, Title & Escrow Badge */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-1.5 flex-1 min-w-0">
+                          <span className="px-1.5 py-0.5 rounded bg-[#0052CC] text-white font-mono font-bold text-[10px] shrink-0 shadow-2xs mt-0.5">
                             {m.number}
                           </span>
-                          <span className="font-bold text-xs text-[#111827] group-hover:text-[#0052CC] transition-colors truncate" title={m.title}>
+                          <h3 className="font-bold text-xs text-[#111827] group-hover:text-[#0052CC] transition-colors leading-snug line-clamp-2" title={m.title}>
                             {m.title}
-                          </span>
+                          </h3>
                         </div>
-                        <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase shrink-0", statusConfig.bg, statusConfig.color, statusConfig.border)}>
-                          {statusConfig.text}
-                        </span>
-                      </div>
-
-                      {/* Accurate Calendar Dates with Duration & Escrow */}
-                      <div className="text-[11px] font-mono text-[#4B5563] mt-1.5 flex items-center justify-between">
-                        <span>{m.startDate} – {m.endDate}</span>
-                        <span className="text-[10px] font-mono font-bold text-[#166534] bg-[#DCFCE7] px-1.5 py-0.2 rounded border border-[#BBF7D0]">
+                        <span className="text-[10px] font-mono font-bold text-[#166534] bg-[#DCFCE7] px-2 py-0.5 rounded-md border border-[#BBF7D0] shrink-0 shadow-2xs">
                           {formatCurrency(m.escrowAmount)}
                         </span>
                       </div>
 
-                      {/* Progress & Revision Cap */}
-                      <div className="flex items-center justify-between mt-1.5 text-[10px] text-[#6B7280]">
-                        <span className="font-mono text-[#0052CC] font-semibold flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#0052CC]" />
-                          {m.progressPercent}% Complete
+                      {/* Row 2: Status Pill & Exact Dates */}
+                      <div className="flex items-center justify-between text-[11px] gap-2">
+                        <div className="flex items-center gap-1.5 font-mono text-[#4B5563] text-[10.5px]">
+                          <CalendarIcon className="w-3 h-3 text-[#9CA3AF] shrink-0" />
+                          <span>{m.startDate} – {m.endDate}</span>
+                        </div>
+                        <span className={cn("text-[9px] font-bold px-2 py-0.5 rounded border uppercase shrink-0 font-sans tracking-wide", statusConfig.bg, statusConfig.color, statusConfig.border)}>
+                          {statusConfig.text}
                         </span>
+                      </div>
+
+                      {/* Row 3: Progress, Duration & Revision Cap */}
+                      <div className="flex items-center justify-between text-[10px] text-[#6B7280]">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[#0052CC] font-semibold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#0052CC]" />
+                            {m.progressPercent}% Complete
+                          </span>
+                          <span className="text-[#D1D5DB]">•</span>
+                          <span className="font-mono text-[#6B7280]">{m.durationLabel}</span>
+                        </div>
                         <span
                           className={cn(
                             "font-mono px-1.5 py-0.5 rounded text-[9px] font-semibold",
@@ -835,6 +794,20 @@ export function MilestoneProjectTimeline({
                           Iter: {m.usedIterations}/{m.maxIterations}
                         </span>
                       </div>
+
+                      {/* Row 4: Proper Milestone Domain Tags */}
+                      {m.tags && m.tags.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-black/[0.04]">
+                          {m.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-[9.5px] font-mono font-medium px-1.5 py-0.5 rounded bg-white text-[#4B5563] border border-[#E5E7EB] shadow-2xs hover:border-[#0052CC]/40 hover:text-[#0052CC] transition-colors"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Gantt Bar spanning startMonth to endMonth with Jira Progress Fill Track */}
@@ -846,7 +819,7 @@ export function MilestoneProjectTimeline({
                     >
                       <div
                         className={cn(
-                          "relative w-full h-14 rounded-xl p-3 flex items-center justify-between gap-3 shadow-xs transition-all border group-hover:shadow-md group-hover:scale-[1.008] overflow-hidden",
+                          "relative w-full h-14 rounded-xl px-3 py-2 flex items-center shadow-xs transition-all border group-hover:shadow-md group-hover:scale-[1.006] overflow-hidden",
                           m.status === "completed"
                             ? "bg-[#F0FDF4] border-[#86EFAC] text-[#166534]"
                             : m.status === "in_review"
@@ -874,45 +847,49 @@ export function MilestoneProjectTimeline({
 
                         {/* Compact 1-Month Layout vs Spacious Multi-Month Layout */}
                         {monthSpan === 1 ? (
-                          <div className="relative z-10 flex items-center justify-between w-full gap-2 min-w-0">
-                            <div className="flex flex-col min-w-0">
-                              <span className="font-bold text-xs truncate">{m.number}: {m.title.slice(0, 14)}...</span>
-                              <span className="text-[10px] font-mono opacity-85">{m.startDate.slice(0, 6)}–{m.endDate.slice(4, 6)} • {m.progressPercent}%</span>
+                          <div className="relative z-10 flex flex-col justify-center h-full w-full min-w-0 gap-0.5">
+                            <div className="flex items-center justify-between gap-1.5 min-w-0">
+                              <span className="font-bold text-xs truncate tracking-tight" title={`${m.number}: ${m.title}`}>
+                                {m.number}: {m.title}
+                              </span>
+                              <span className={cn("inline-flex items-center gap-1 text-[8.5px] font-bold uppercase px-1.5 py-0.5 rounded shadow-2xs shrink-0 border bg-white/95", statusConfig.color, statusConfig.border)}>
+                                {m.status === "completed" && <CheckCircle2 className="w-2.5 h-2.5 text-[#166534]" />}
+                                {m.status === "in_review" && <Clock className="w-2.5 h-2.5 text-[#D97706]" />}
+                                {m.status === "in_progress" && <Flame className="w-2.5 h-2.5 text-[#2563EB]" />}
+                                <span>{statusConfig.text}</span>
+                              </span>
                             </div>
-                            <span className={cn("flex items-center gap-1 text-[9px] font-bold uppercase px-2 py-0.5 rounded-md shadow-2xs shrink-0 border bg-white/95", statusConfig.color, statusConfig.border)}>
-                              <CheckCircle2 className="w-3 h-3 text-[#166534]" />
-                              {statusConfig.text}
-                            </span>
+                            <div className="flex items-center justify-between text-[10px] font-mono opacity-85">
+                              <span>{m.startDate.slice(0, 6)} – {m.endDate.slice(0, 6)}</span>
+                              <span className="font-semibold">{m.progressPercent}%</span>
+                            </div>
                           </div>
                         ) : (
                           <div className="relative z-10 flex items-center justify-between w-full gap-3 min-w-0">
-                            {/* Left: Milestone Number, Title & Exact Accurate Dates */}
+                            {/* Left: Milestone Number, Title & Schedule Details */}
                             <div className="flex flex-col min-w-0 justify-center">
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <span className="font-bold text-xs shrink-0">{m.number}:</span>
-                                <span className="text-xs font-bold truncate tracking-tight">{m.title}</span>
+                                <span className="text-xs font-bold truncate tracking-tight" title={m.title}>
+                                  {m.title}
+                                </span>
                               </div>
                               <div className="flex items-center gap-2 mt-0.5 text-[10px] font-mono opacity-85 truncate">
-                                <span>{m.startDate} – {m.endDate} ({m.durationLabel})</span>
+                                <span>{m.startDate} – {m.endDate}</span>
+                                <span>•</span>
+                                <span className="font-semibold">{m.durationLabel}</span>
                                 <span>•</span>
                                 <span className="font-semibold">{m.progressPercent}% Complete</span>
                               </div>
                             </div>
 
-                            {/* Right: Status Pill, Progress & View Trigger */}
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className={cn("flex items-center gap-1 text-[10px] font-bold uppercase px-2.5 py-1 rounded-md shadow-2xs border bg-white/95", statusConfig.color, statusConfig.border)}>
-                                {m.status === "completed" && <CheckCircle2 className="w-3.5 h-3.5 text-[#166534]" />}
-                                {m.status === "in_review" && <Clock className="w-3.5 h-3.5 text-[#D97706]" />}
-                                {m.status === "in_progress" && <Flame className="w-3.5 h-3.5 text-[#2563EB]" />}
-                                <span>{statusConfig.text}</span>
-                              </span>
-
-                              <div className="hidden sm:flex items-center gap-1 bg-white/95 text-[#111827] px-2.5 py-1 rounded-md text-[10px] font-semibold group-hover:bg-white shadow-2xs transition-colors border border-black/[0.05]">
-                                <span>Inspect Spec</span>
-                                <ChevronRight className="w-3 h-3 text-[#6B7280]" />
-                              </div>
-                            </div>
+                            {/* Right: Clean Status Pill */}
+                            <span className={cn("flex items-center gap-1 text-[10px] font-bold uppercase px-2.5 py-1 rounded-md shadow-2xs border bg-white/95 shrink-0", statusConfig.color, statusConfig.border)}>
+                              {m.status === "completed" && <CheckCircle2 className="w-3.5 h-3.5 text-[#166534]" />}
+                              {m.status === "in_review" && <Clock className="w-3.5 h-3.5 text-[#D97706]" />}
+                              {m.status === "in_progress" && <Flame className="w-3.5 h-3.5 text-[#2563EB]" />}
+                              <span>{statusConfig.text}</span>
+                            </span>
                           </div>
                         )}
                       </div>
@@ -1002,6 +979,20 @@ export function MilestoneProjectTimeline({
                           {formatCurrency(selectedMilestone.escrowAmount)} Locked in Escrow
                         </span>
                       </div>
+
+                      {/* Domain Tags */}
+                      {selectedMilestone.tags && selectedMilestone.tags.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap mt-2">
+                          {selectedMilestone.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-white text-[#4B5563] border border-[#E5E7EB] shadow-2xs"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
