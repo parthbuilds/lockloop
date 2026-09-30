@@ -384,60 +384,20 @@ export function ProofOfWorkFeed({
               <span>/</span>
               <span>SPRINT 3</span>
               <span className="bg-[#DCFCE7] text-[#15803D] px-1.5 py-0.2 rounded text-[10px] font-bold uppercase">
-                Active Sprint
+                Sprint Active
               </span>
+              <span>•</span>
+              <span className="text-[#166534] font-semibold">SOW-2026-9921 ($4,950 Contract Total)</span>
             </div>
             <h2 className="text-lg font-bold tracking-tight text-[#111827] flex items-center gap-2">
-              <span>Sprint 3: Database & NextAuth Primitives</span>
+              <span>Client Proof-of-Work Verification Stream</span>
               <span className="text-xs font-normal text-[#6B7280] hidden md:inline">
                 (Sep 24 – Oct 08, 2026)
               </span>
             </h2>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Proof Type Quick Filters */}
-            <div className="flex items-center bg-[#F4F5F7] p-1 rounded-lg text-xs font-semibold text-[#6B7280]">
-              <button
-                onClick={() => setTypeFilter("all")}
-                className={cn(
-                  "flex items-center gap-1.5 py-1.5 px-2.5 rounded-md transition-all cursor-pointer whitespace-nowrap",
-                  typeFilter === "all"
-                    ? "bg-white text-[#111827] shadow-xs font-bold"
-                    : "hover:text-[#111827]"
-                )}
-              >
-                <span>All Issues ({checkIns.length})</span>
-              </button>
-
-              <button
-                onClick={() => setTypeFilter("loom")}
-                className={cn(
-                  "flex items-center gap-1.5 py-1.5 px-2.5 rounded-md transition-all cursor-pointer whitespace-nowrap",
-                  typeFilter === "loom"
-                    ? "bg-white text-[#111827] shadow-xs font-bold"
-                    : "hover:text-[#111827]"
-                )}
-              >
-                <Video className="w-3.5 h-3.5 text-[#2D6606]" />
-                <span>16:9 Demos</span>
-              </button>
-
-              <button
-                onClick={() => setTypeFilter("git")}
-                className={cn(
-                  "flex items-center gap-1.5 py-1.5 px-2.5 rounded-md transition-all cursor-pointer whitespace-nowrap",
-                  typeFilter === "git"
-                    ? "bg-white text-[#111827] shadow-xs font-bold"
-                    : "hover:text-[#111827]"
-                )}
-              >
-                <GitCommit className="w-3.5 h-3.5 text-[#0369A1]" />
-                <span>Git Commits</span>
-              </button>
-            </div>
-
-            {/* Post Check-in button */}
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="dark"
               size="sm"
@@ -445,7 +405,7 @@ export function ProofOfWorkFeed({
               className="text-xs font-bold gap-1.5 shrink-0 bg-[#0C66E4] hover:bg-[#0055CC] text-white"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>{role === "business" ? "Add Deliverable Issue" : "Log Deliverable Spec"}</span>
+              <span>{role === "business" ? "Verify / Add Log" : "Log Deliverable Spec"}</span>
             </Button>
           </div>
         </div>
@@ -584,185 +544,196 @@ export function ProofOfWorkFeed({
         </div>
 
         {/* ========================================================================= */}
-        {/* 3. MULTI-LEVEL FILTERS & SEARCH ROW                                       */}
+        {/* 3. UNIFIED CLEAN FILTER & SEARCH TOOLBAR                                  */}
         {/* ========================================================================= */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2.5 border-t border-[#F1F3F6]">
-          {/* Filter Pills */}
-          <div className="flex items-center gap-1.5 flex-wrap text-xs">
-            <span className="text-[11px] font-semibold text-[#6B7280] mr-1 flex items-center gap-1">
-              <Filter className="w-3 h-3" />
-              Filter:
-            </span>
+        <div className="flex flex-col gap-2.5 pt-2.5 border-t border-[#F1F3F6]">
+          {/* Row 1: Status Filter Pills, Milestone Dropdown, Media Toggle & Search */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+            {/* Left: Status Filter Pills (Linear / Jira Segmented Style) */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] font-bold text-[#6B7280] mr-1 flex items-center gap-1">
+                <Filter className="w-3.5 h-3.5 text-[#4B5563]" />
+                Filter:
+              </span>
 
-            {/* Status pills */}
-            {[
-              { id: "all", label: "All Items", count: checkIns.length },
-              {
-                id: "verified",
-                label: "Verified",
-                count: checkIns.filter((c) => c.status === "verified").length,
-              },
-              {
-                id: "review",
-                label: "In Review (72h SLA)",
-                count: checkIns.filter((c) => c.status === "review").length,
-              },
-              {
-                id: "achievements",
-                label: "🏆 Milestones Only",
-                count: checkIns.filter((c) => c.isMilestoneAchievement).length,
-              },
-            ].map((pill) => (
-              <button
-                key={pill.id}
-                onClick={() => setStatusFilter(pill.id as typeof statusFilter)}
-                className={cn(
-                  "px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5",
-                  statusFilter === pill.id
-                    ? "bg-[#111827] text-white font-semibold"
-                    : "bg-[#F4F5F7] text-[#4B5563] hover:bg-[#E5E7EB]"
-                )}
-              >
-                <span>{pill.label}</span>
-                <span
+              {[
+                { id: "all", label: "All Items", count: checkIns.length },
+                {
+                  id: "verified",
+                  label: "Verified",
+                  count: checkIns.filter((c) => c.status === "verified").length,
+                  dot: "bg-emerald-500",
+                },
+                {
+                  id: "review",
+                  label: "In Review (72h SLA)",
+                  count: checkIns.filter((c) => c.status === "review").length,
+                  dot: "bg-amber-500",
+                },
+                {
+                  id: "achievements",
+                  label: "🏆 Milestones Only",
+                  count: checkIns.filter((c) => c.isMilestoneAchievement).length,
+                },
+              ].map((pill) => (
+                <button
+                  key={pill.id}
+                  onClick={() => setStatusFilter(pill.id as typeof statusFilter)}
                   className={cn(
-                    "text-[10px] font-mono px-1 rounded-full",
-                    statusFilter === pill.id ? "bg-white/20 text-white" : "bg-[#E5E7EB] text-[#4B5563]"
+                    "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 border",
+                    statusFilter === pill.id
+                      ? "bg-[#111827] text-white font-semibold border-[#111827] shadow-xs"
+                      : "bg-[#F8F9FA] text-[#4B5563] border-[#E5E7EB] hover:bg-[#E5E7EB] hover:text-[#111827]"
                   )}
                 >
-                  {pill.count}
-                </span>
-              </button>
-            ))}
+                  {pill.dot && <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", pill.dot)} />}
+                  <span>{pill.label}</span>
+                  <span
+                    className={cn(
+                      "text-[10px] font-mono px-1.5 py-0.2 rounded-full",
+                      statusFilter === pill.id ? "bg-white/20 text-white font-bold" : "bg-[#E5E7EB] text-[#4B5563]"
+                    )}
+                  >
+                    {pill.count}
+                  </span>
+                </button>
+              ))}
+            </div>
 
-            {/* Milestone dropdown filter */}
-            <select
-              value={milestoneFilter}
-              onChange={(e) => setMilestoneFilter(e.target.value)}
-              className="text-xs bg-[#F4F5F7] border border-[#E5E7EB] rounded-md px-2 py-1 text-[#111827] font-medium outline-hidden cursor-pointer"
-            >
-              <option value="all">All Milestones</option>
-              <option value="m1">M1: DB & Architecture (Released)</option>
-              <option value="m2">M2: Core UI & API Sync (In Review)</option>
-              <option value="m3">M3: Stripe Payouts (Locked)</option>
-            </select>
+            {/* Right: Milestone Selector, Media Type Switcher & Search Bar */}
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              {/* Milestone Dropdown */}
+              <select
+                value={milestoneFilter}
+                onChange={(e) => setMilestoneFilter(e.target.value)}
+                className="text-xs bg-[#F8F9FA] border border-[#E5E7EB] rounded-lg px-2.5 py-1.5 text-[#111827] font-semibold outline-hidden cursor-pointer hover:bg-[#F3F4F6] transition-colors"
+              >
+                <option value="all">All Milestones</option>
+                <option value="m1">M1: DB & Architecture (Released)</option>
+                <option value="m2">M2: Core UI & API Sync (In Review)</option>
+                <option value="m3">M3: Stripe Payouts (Locked)</option>
+              </select>
 
-            {/* Content Type Filter */}
-            <div className="flex items-center bg-[#F4F5F7] rounded-md p-0.5 text-[11px] font-semibold text-[#4B5563]">
-              <button
-                onClick={() => setTypeFilter("all")}
-                className={cn(
-                  "px-2 py-0.5 rounded cursor-pointer",
-                  typeFilter === "all" ? "bg-white text-[#111827] shadow-2xs font-bold" : "hover:text-[#111827]"
+              {/* Media Type Filter */}
+              <div className="flex items-center bg-[#F4F5F7] border border-[#E5E7EB] rounded-lg p-0.5 text-xs font-semibold text-[#4B5563]">
+                <button
+                  onClick={() => setTypeFilter("all")}
+                  className={cn(
+                    "px-2.5 py-1 rounded-md cursor-pointer transition-all",
+                    typeFilter === "all" ? "bg-white text-[#111827] shadow-2xs font-bold" : "hover:text-[#111827]"
+                  )}
+                >
+                  All Media
+                </button>
+                <button
+                  onClick={() => setTypeFilter("loom")}
+                  className={cn(
+                    "px-2.5 py-1 rounded-md cursor-pointer flex items-center gap-1 transition-all",
+                    typeFilter === "loom" ? "bg-white text-[#111827] shadow-2xs font-bold" : "hover:text-[#111827]"
+                  )}
+                >
+                  <Video className="w-3 h-3 text-[#2D6606]" />
+                  <span>Loom</span>
+                </button>
+                <button
+                  onClick={() => setTypeFilter("git")}
+                  className={cn(
+                    "px-2.5 py-1 rounded-md cursor-pointer flex items-center gap-1 transition-all",
+                    typeFilter === "git" ? "bg-white text-[#111827] shadow-2xs font-bold" : "hover:text-[#111827]"
+                  )}
+                >
+                  <GitCommit className="w-3 h-3 text-[#0369A1]" />
+                  <span>Commits</span>
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative w-full sm:w-56 shrink-0">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+                <input
+                  type="text"
+                  placeholder="Search commits, Loom, PRs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full text-xs bg-[#F8F9FA] border border-[#E5E7EB] focus:border-[#0C66E4] focus:bg-white rounded-lg pl-8 pr-7 py-1.5 outline-hidden transition-all text-[#111827]"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#111827] cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 )}
-              >
-                All Media
-              </button>
-              <button
-                onClick={() => setTypeFilter("loom")}
-                className={cn(
-                  "px-2 py-0.5 rounded cursor-pointer flex items-center gap-1",
-                  typeFilter === "loom" ? "bg-white text-[#111827] shadow-2xs font-bold" : "hover:text-[#111827]"
-                )}
-              >
-                <Video className="w-2.5 h-2.5 text-[#2D6606]" />
-                Loom
-              </button>
-              <button
-                onClick={() => setTypeFilter("git")}
-                className={cn(
-                  "px-2 py-0.5 rounded cursor-pointer flex items-center gap-1",
-                  typeFilter === "git" ? "bg-white text-[#111827] shadow-2xs font-bold" : "hover:text-[#111827]"
-                )}
-              >
-                <GitCommit className="w-2.5 h-2.5 text-[#0369A1]" />
-                Commits
-              </button>
+              </div>
             </div>
           </div>
 
-          {/* Search bar */}
-          <div className="relative w-full sm:w-56">
-            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-            <input
-              type="text"
-              placeholder="Search commits, Loom, PRs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full text-xs bg-[#F4F5F7] border border-transparent focus:border-[#CBD5E1] focus:bg-white rounded-lg pl-8 pr-3 py-1.5 outline-hidden transition-all text-[#111827]"
-            />
-            {searchQuery && (
+          {/* Row 2: Clean Organized Tags Rail with Active Results Count & Quick Reset */}
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#F1F3F6] text-xs">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-1 min-w-0">
+              <span className="text-[11px] font-bold text-[#6B7280] shrink-0 mr-1 flex items-center gap-1">
+                <Tag className="w-3 h-3 text-[#7C3AED]" />
+                Tags:
+              </span>
+
               <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#111827]"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* INTERACTIVE TAG RAIL (Click anywhere or on card chips to filter)          */}
-        {/* ========================================================================= */}
-        <div className="flex items-center gap-1.5 pt-2 border-t border-[#F1F3F6] overflow-x-auto no-scrollbar py-0.5">
-          <span className="text-[11px] font-bold text-[#6B7280] shrink-0 mr-1 flex items-center gap-1">
-            <Tag className="w-3 h-3 text-[#7C3AED]" />
-            Tags:
-          </span>
-
-          <button
-            onClick={() => setSelectedTag("all")}
-            className={cn(
-              "px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5",
-              selectedTag === "all"
-                ? "bg-[#111827] text-white font-bold shadow-2xs"
-                : "bg-[#F4F5F7] text-[#4B5563] hover:bg-[#E5E7EB]"
-            )}
-          >
-            <span>#All</span>
-            <span
-              className={cn(
-                "text-[10px] font-mono px-1 rounded-full",
-                selectedTag === "all" ? "bg-white/20 text-white" : "bg-[#E5E7EB] text-[#4B5563]"
-              )}
-            >
-              {checkIns.length}
-            </span>
-          </button>
-
-          {allUniqueTags.map(({ tag, count }) => (
-            <button
-              key={tag}
-              onClick={() => setSelectedTag(selectedTag === tag ? "all" : tag)}
-              className={cn(
-                "px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5",
-                selectedTag === tag
-                  ? "bg-[#7C3AED] text-white font-bold shadow-2xs ring-2 ring-[#C4B5FD]"
-                  : "bg-[#F3E8FF] text-[#6D28D9] hover:bg-[#E9D5FF]"
-              )}
-            >
-              <span>#{tag}</span>
-              <span
+                onClick={() => setSelectedTag("all")}
                 className={cn(
-                  "text-[10px] font-mono px-1 rounded-full",
-                  selectedTag === tag ? "bg-white/30 text-white" : "bg-purple-200/80 text-[#6D28D9]"
+                  "px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1 border",
+                  selectedTag === "all"
+                    ? "bg-[#111827] text-white border-[#111827]"
+                    : "bg-[#F8F9FA] text-[#4B5563] border-[#E5E7EB] hover:bg-[#E5E7EB]"
                 )}
               >
-                {count}
-              </span>
-            </button>
-          ))}
+                <span>#All</span>
+                <span className={cn("text-[9px] font-mono px-1 rounded-full", selectedTag === "all" ? "bg-white/20 text-white" : "bg-[#E5E7EB] text-[#4B5563]")}>
+                  {checkIns.length}
+                </span>
+              </button>
 
-          {selectedTag !== "all" && (
-            <button
-              onClick={() => setSelectedTag("all")}
-              className="text-[11px] font-semibold text-[#DC2626] hover:text-[#991B1B] ml-1 shrink-0 flex items-center gap-1 cursor-pointer bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded-md"
-            >
-              <X className="w-3 h-3" />
-              Reset #{selectedTag}
-            </button>
-          )}
+              {allUniqueTags.map(({ tag, count }) => (
+                <button
+                  key={tag}
+                  onClick={() => setSelectedTag(selectedTag === tag ? "all" : tag)}
+                  className={cn(
+                    "px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1 border",
+                    selectedTag === tag
+                      ? "bg-[#7C3AED] text-white font-bold border-[#7C3AED] shadow-2xs"
+                      : "bg-[#FAF5FF] text-[#6B21A8] border-[#E9D5FF] hover:bg-[#F3E8FF]"
+                  )}
+                >
+                  <span>#{tag}</span>
+                  <span className={cn("text-[9px] font-mono px-1 rounded-full", selectedTag === tag ? "bg-white/30 text-white" : "bg-[#E9D5FF] text-[#6B21A8]")}>
+                    {count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Results count & reset filters */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[11px] text-[#6B7280] font-mono hidden md:inline">
+                {filteredCheckIns.length} of {checkIns.length} deliverables
+              </span>
+
+              {(statusFilter !== "all" || milestoneFilter !== "all" || typeFilter !== "all" || selectedTag !== "all" || searchQuery.trim().length > 0) && (
+                <button
+                  onClick={() => {
+                    setStatusFilter("all");
+                    setMilestoneFilter("all");
+                    setTypeFilter("all");
+                    setSelectedTag("all");
+                    setSearchQuery("");
+                  }}
+                  className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-md transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                >
+                  <X className="w-3 h-3" />
+                  <span>Reset All</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
