@@ -14,6 +14,7 @@ import {
   Play,
   PlayCircle,
   GitCommit,
+  GitBranch,
   Calendar as CalendarIcon,
   CalendarDays,
   Plus,
@@ -42,7 +43,6 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { ALL_HOURS_24 } from "./milestone-escrow-room";
-import { MilestoneProjectTimeline } from "./milestone-project-timeline";
 
 // =============================================================================
 // TYPES & DATA STRUCTURES
@@ -306,9 +306,6 @@ export function ProofOfWorkFeed({
   const [typeFilter, setTypeFilter] = React.useState<"all" | "loom" | "git" | "achievement">("all");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
 
-  // View presentation mode
-  const [viewPresentation, setViewPresentation] = React.useState<"timeline" | "feed">("timeline");
-
   // Check-ins dataset
   const [checkIns, setCheckIns] = React.useState<CheckInItem[]>(INITIAL_CHECKINS);
 
@@ -502,32 +499,57 @@ export function ProofOfWorkFeed({
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {/* View Mode Selector: Timeline | Feed */}
+            {/* Proof Type Quick Filters */}
             <div className="flex items-center bg-[#F4F5F7] p-1 rounded-lg text-xs font-semibold text-[#6B7280]">
               <button
-                onClick={() => setViewPresentation("timeline")}
+                onClick={() => setTypeFilter("all")}
                 className={cn(
-                  "flex items-center gap-1.5 py-1.5 px-3 rounded-md transition-all cursor-pointer whitespace-nowrap",
-                  viewPresentation === "timeline"
+                  "flex items-center gap-1.5 py-1.5 px-2.5 rounded-md transition-all cursor-pointer whitespace-nowrap",
+                  typeFilter === "all"
                     ? "bg-white text-[#111827] shadow-xs font-bold"
                     : "hover:text-[#111827]"
                 )}
               >
-                <CalendarDays className="w-3.5 h-3.5 text-[#2D6606]" />
-                <span>Timeline View</span>
+                <span>All Proof ({checkIns.length})</span>
               </button>
 
               <button
-                onClick={() => setViewPresentation("feed")}
+                onClick={() => setTypeFilter("loom")}
                 className={cn(
-                  "flex items-center gap-1.5 py-1.5 px-3 rounded-md transition-all cursor-pointer whitespace-nowrap",
-                  viewPresentation === "feed"
+                  "flex items-center gap-1.5 py-1.5 px-2.5 rounded-md transition-all cursor-pointer whitespace-nowrap",
+                  typeFilter === "loom"
                     ? "bg-white text-[#111827] shadow-xs font-bold"
                     : "hover:text-[#111827]"
                 )}
               >
-                <PlayCircle className="w-3.5 h-3.5 text-[#2D6606]" />
-                <span>Media Feed</span>
+                <Video className="w-3.5 h-3.5 text-[#2D6606]" />
+                <span>16:9 Videos</span>
+              </button>
+
+              <button
+                onClick={() => setTypeFilter("git")}
+                className={cn(
+                  "flex items-center gap-1.5 py-1.5 px-2.5 rounded-md transition-all cursor-pointer whitespace-nowrap",
+                  typeFilter === "git"
+                    ? "bg-white text-[#111827] shadow-xs font-bold"
+                    : "hover:text-[#111827]"
+                )}
+              >
+                <GitCommit className="w-3.5 h-3.5 text-[#0369A1]" />
+                <span>Commits & Diffs</span>
+              </button>
+
+              <button
+                onClick={() => setTypeFilter("achievement")}
+                className={cn(
+                  "flex items-center gap-1.5 py-1.5 px-2.5 rounded-md transition-all cursor-pointer whitespace-nowrap",
+                  typeFilter === "achievement"
+                    ? "bg-white text-[#111827] shadow-xs font-bold"
+                    : "hover:text-[#111827]"
+                )}
+              >
+                <Trophy className="w-3.5 h-3.5 text-[#EAB308]" />
+                <span>Milestones</span>
               </button>
             </div>
 
@@ -784,23 +806,34 @@ export function ProofOfWorkFeed({
       </div>
 
       {/* ========================================================================= */}
-      {/* 4. MAIN CONTENT AREA: TIMELINE VIEW / MEDIA FEED                           */}
+      {/* 4. MAIN CONTENT AREA: VERIFIED PROOF-OF-WORK MEDIA & AUDIT STREAM         */}
       {/* ========================================================================= */}
-
-      {/* TIMELINE VIEW */}
-      {viewPresentation === "timeline" && (
-        <MilestoneProjectTimeline
-          role={role}
-          showToast={showToast}
-          className="flex-1"
-        />
-      )}
-
-      {/* MEDIA FEED VIEW */}
-      {viewPresentation === "feed" && (
-        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 pb-3 flex flex-col gap-3">
-          {/* Milestone Showcase Card Feed */}
-          {filteredCheckIns.map((post) => (
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 pb-3 flex flex-col gap-3">
+        {filteredCheckIns.length === 0 ? (
+          <div className="bg-white rounded-xl border border-black/[0.06] p-8 text-center flex flex-col items-center justify-center gap-3 my-auto">
+            <div className="w-12 h-12 rounded-full bg-[#F4F5F7] flex items-center justify-center text-[#9CA3AF]">
+              <Video className="w-6 h-6 text-[#9CA3AF]" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-[#111827]">No deliverables or proof match your active filters</h4>
+              <p className="text-xs text-[#6B7280] mt-1">Try switching to &quot;All Proof&quot; or clearing your search query.</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setTypeFilter("all");
+                setStatusFilter("all");
+                setMilestoneFilter("all");
+                setSearchQuery("");
+              }}
+              className="text-xs font-semibold cursor-pointer"
+            >
+              Reset All Filters
+            </Button>
+          </div>
+        ) : (
+          filteredCheckIns.map((post) => (
             <Card key={post.id} className="p-3.5 sm:p-4 rounded-xl shadow-2xs hover:shadow-xs transition-shadow border border-black/[0.06] bg-white">
               <div className="flex flex-col md:flex-row gap-4 items-stretch">
                 {/* LEFT: Smaller 16:9 Media Preview Card */}
@@ -904,21 +937,26 @@ export function ProofOfWorkFeed({
                     </p>
                   </div>
 
-                  {/* Metadata Chips: Hours, Commit, Diff, Tags */}
+                  {/* Metadata Chips: Branch, Commit, Changes Diff, Hours, Tags */}
                   <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#EFF6FF] text-[#1D4ED8] font-mono text-[11px] font-medium border border-blue-200/60">
+                      <GitBranch className="w-3 h-3 text-[#2563EB]" />
+                      {post.branch}
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F8FAFC] text-[#334155] font-mono text-[11px] font-semibold border border-slate-200/80">
+                      <GitCommit className="w-3 h-3 text-[#64748B]" />
+                      {post.commitHash}
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F0FDF4] text-[#15803D] font-mono text-[11px] font-semibold border border-green-200/60">
+                      <FileText className="w-3 h-3 text-emerald-600" />
+                      {post.commitDiff}
+                    </span>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F4F5F7] text-[#374151] font-semibold text-[11px]">
                       <Clock className="w-3 h-3 text-[#6B7280]" />
                       {post.hoursLogged}h Logged
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F4F5F7] text-[#374151] font-mono text-[11px]">
-                      <GitCommit className="w-3 h-3 text-[#6B7280]" />
-                      {post.commitHash}
-                    </span>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F4F5F7] text-[#374151] font-mono text-[11px]">
-                      {post.commitDiff}
-                    </span>
                     {post.tags.map((tag) => (
-                      <span key={tag} className="px-1.5 py-0.5 rounded bg-[#EDE9FE] text-[#6D28D9] font-medium text-[10px]">
+                      <span key={tag} className="px-2 py-0.5 rounded-md bg-[#EDE9FE] text-[#6D28D9] font-medium text-[10px] border border-purple-200/50">
                         #{tag}
                       </span>
                     ))}
@@ -992,9 +1030,9 @@ export function ProofOfWorkFeed({
                 </div>
               </div>
             </Card>
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
 
       {/* ========================================================================= */}
       {/* 7. FULL 16:9 LOOM & CODE INSPECTOR MODAL                                  */}
