@@ -50,6 +50,7 @@ import {
 
 export interface CheckInItem {
   id: string;
+  issueKey: string; // e.g. "LOCK-101"
   title: string;
   description: string;
   author: string;
@@ -81,6 +82,7 @@ const ANCHOR_TODAY_ISO = "2026-09-30";
 export const INITIAL_CHECKINS: CheckInItem[] = [
   {
     id: "po-1",
+    issueKey: "LOCK-101",
     title: "PostgreSQL Database Schema & NextAuth Session Primitives",
     description: "Configured Prisma schema, established database connection pools, and set up Google & GitHub OAuth provider flows with automated session invalidation.",
     author: "Alex Rivera",
@@ -105,6 +107,7 @@ export const INITIAL_CHECKINS: CheckInItem[] = [
   },
   {
     id: "po-2",
+    issueKey: "LOCK-102",
     title: "Dockerized Local Dev Environment & Supabase Sync",
     description: "Configured docker-compose for local development, local pgvector extension setup, and seeded synthetic freelancer data.",
     author: "Alex Rivera",
@@ -126,6 +129,7 @@ export const INITIAL_CHECKINS: CheckInItem[] = [
   },
   {
     id: "po-3",
+    issueKey: "LOCK-103",
     title: "JWT Cookie Encryption & Middleware Tenant Isolation",
     description: "Implemented Next.js edge middleware to inspect Bearer tokens, enforce sub-domain tenant separation, and prevent cross-tenant data leakage.",
     author: "Alex Rivera",
@@ -147,6 +151,7 @@ export const INITIAL_CHECKINS: CheckInItem[] = [
   },
   {
     id: "po-4",
+    issueKey: "LOCK-104",
     title: "NextAuth Google Provider + Row-Level Security Rules on User Table",
     description: "Finished the OAuth callback router, encrypted JWT session cookies, and tested tenant isolation with 12 unit tests.",
     author: "Alex Rivera",
@@ -171,6 +176,7 @@ export const INITIAL_CHECKINS: CheckInItem[] = [
   },
   {
     id: "po-5",
+    issueKey: "LOCK-105",
     title: "Stripe Connect Express Onboarding Webhooks & Listener Stubs",
     description: "Constructed webhook signature verification, payout recipient account state handlers, and automated escrow balance release listeners.",
     author: "Alex Rivera",
@@ -192,6 +198,7 @@ export const INITIAL_CHECKINS: CheckInItem[] = [
   },
   {
     id: "po-6",
+    issueKey: "LOCK-106",
     title: "Milestone 3 Sprint Checkpoint: Escrow Auto-Release Logic",
     description: "Verified neutral 3rd party payout execution test on sandbox. Tested 72h Dead-Man watchdog timer expiration handling.",
     author: "Alex Rivera",
@@ -353,6 +360,7 @@ export function ProofOfWorkFeed({
       achievementBadge: isMilestoneCheck ? "Sprint Milestone Achievement" : undefined,
       escrowAmount: isMilestoneCheck ? 1950 : undefined,
       tags: ["Check-in", "Sprint 3", submitTimeSlot],
+      issueKey: `LOCK-${100 + checkIns.length + 1}`,
     };
 
     setCheckIns((prev) => [newCheckIn, ...prev]);
@@ -365,25 +373,26 @@ export function ProofOfWorkFeed({
   return (
     <div className={cn("w-full min-w-0 flex flex-col gap-3.5 flex-1 min-h-0 overflow-hidden", className)}>
       {/* ========================================================================= */}
-      {/* 1. TOP TOOLBAR & HEADER (Matches Milestones & Escrow Delivery Sprint Active) */}
+      {/* 1. JIRA-STYLE ACTIVE SPRINT HEADER & SPRINT GOAL                          */}
       {/* ========================================================================= */}
       <div className="w-full bg-white p-3.5 sm:p-4 rounded-xl border border-black/[0.06] shadow-[0px_2px_10px_rgba(0,0,0,0.04)] flex flex-col gap-3 shrink-0">
-        {/* Top Line: Title + Sprint Active Badge + View Mode Switchers + Actions */}
+        {/* Breadcrumb + Sprint Title + Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h2 className="text-lg font-bold tracking-tight text-[#111827] flex items-center gap-2">
-              <span>
-                {role === "business"
-                  ? "Client Proof-of-Work Verification Stream"
-                  : "Freelancer Daily Proof-of-Work & Check-in Stream"}
+          <div className="flex flex-col gap-1 min-w-0">
+            <div className="flex items-center gap-2 text-[11px] font-mono font-semibold text-[#6B7280]">
+              <span className="text-[#0C66E4] hover:underline cursor-pointer">LOCKLOOP</span>
+              <span>/</span>
+              <span>SPRINT 3</span>
+              <span className="bg-[#DCFCE7] text-[#15803D] px-1.5 py-0.2 rounded text-[10px] font-bold uppercase">
+                Active Sprint
               </span>
-              <Badge variant="lime" className="text-[11px] rounded-md py-0.5 font-bold">
-                Sprint Active
-              </Badge>
+            </div>
+            <h2 className="text-lg font-bold tracking-tight text-[#111827] flex items-center gap-2">
+              <span>Sprint 3: Database & NextAuth Primitives</span>
+              <span className="text-xs font-normal text-[#6B7280] hidden md:inline">
+                (Sep 24 – Oct 08, 2026)
+              </span>
             </h2>
-            <span className="hidden md:inline-block text-xs text-[#6B7280]">
-              • SOW-2026-9921 ($4,950 Contract Total)
-            </span>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -398,7 +407,7 @@ export function ProofOfWorkFeed({
                     : "hover:text-[#111827]"
                 )}
               >
-                <span>All Proof ({checkIns.length})</span>
+                <span>All Issues ({checkIns.length})</span>
               </button>
 
               <button
@@ -411,7 +420,7 @@ export function ProofOfWorkFeed({
                 )}
               >
                 <Video className="w-3.5 h-3.5 text-[#2D6606]" />
-                <span>16:9 Videos</span>
+                <span>16:9 Demos</span>
               </button>
 
               <button
@@ -424,20 +433,7 @@ export function ProofOfWorkFeed({
                 )}
               >
                 <GitCommit className="w-3.5 h-3.5 text-[#0369A1]" />
-                <span>Commits & Diffs</span>
-              </button>
-
-              <button
-                onClick={() => setTypeFilter("achievement")}
-                className={cn(
-                  "flex items-center gap-1.5 py-1.5 px-2.5 rounded-md transition-all cursor-pointer whitespace-nowrap",
-                  typeFilter === "achievement"
-                    ? "bg-white text-[#111827] shadow-xs font-bold"
-                    : "hover:text-[#111827]"
-                )}
-              >
-                <Trophy className="w-3.5 h-3.5 text-[#EAB308]" />
-                <span>Milestones</span>
+                <span>Git Commits</span>
               </button>
             </div>
 
@@ -446,13 +442,27 @@ export function ProofOfWorkFeed({
               variant="dark"
               size="sm"
               onClick={() => setShowSubmitModal(true)}
-              className="text-xs font-bold gap-1.5 shrink-0"
+              className="text-xs font-bold gap-1.5 shrink-0 bg-[#0C66E4] hover:bg-[#0055CC] text-white"
             >
-              <Sparkles className="w-3.5 h-3.5 text-[#88D635]" />
-              <span>{role === "business" ? "Verify / Add Log" : "Record 16:9 Check-in"}</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span>{role === "business" ? "Add Deliverable Issue" : "Log Deliverable Spec"}</span>
             </Button>
-
           </div>
+        </div>
+
+        {/* Confluence/Jira Sprint Goal Callout */}
+        <div className="bg-[#F8FAFC] border border-[#E2E8F0] p-2.5 rounded-lg flex items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-bold text-[#334155] shrink-0 uppercase tracking-wider text-[10px] bg-white border border-[#CBD5E1] px-1.5 py-0.5 rounded">
+              Sprint Goal
+            </span>
+            <p className="text-[#475569] truncate">
+              Establish secure multi-tenant sessions, Prisma PostgreSQL connection pooling, and Stripe webhook listeners.
+            </p>
+          </div>
+          <span className="text-[11px] font-mono text-[#64748B] shrink-0 hidden sm:inline-block">
+            5 of 6 issues resolved (83%)
+          </span>
         </div>
 
         {/* ========================================================================= */}
@@ -833,45 +843,40 @@ export function ProofOfWorkFeed({
                   </div>
                 </div>
 
-                {/* RIGHT: Description & Details */}
+                {/* RIGHT: Jira Issue Details */}
                 <div className="flex-1 min-w-0 flex flex-col justify-between gap-2.5">
-                  {/* Header: Author + Timestamp + Milestone + Status Badge */}
+                  {/* Jira Header: Issue Key + Title + Milestone + Status Badge */}
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-7 h-7 rounded-full bg-[#111827] text-[#88D635] flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-                        {post.authorInitials}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-xs font-bold text-[#111827]">
-                            {post.author}
-                          </span>
-                          <span className="text-[11px] text-[#6B7280]">
-                            ({post.authorRole === "freelancer" ? "Freelancer" : "Client"})
-                          </span>
-                          <span className="text-[11px] text-[#9CA3AF]">•</span>
-                          <span className="text-[11px] font-medium text-[#4B5563] truncate">
-                            {post.milestoneTitle}
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-[#9CA3AF]">
-                          {post.dateStr} at {post.timeDisplay}
-                        </span>
-                      </div>
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      <span className="font-mono text-xs font-bold text-[#0C66E4] bg-[#E9F2FF] px-2 py-0.5 rounded border border-[#B3D4FF] flex items-center gap-1 shrink-0">
+                        <CheckCircle2 className="w-3 h-3 text-[#0C66E4]" />
+                        {post.issueKey}
+                      </span>
+                      <span className="text-[11px] font-medium text-[#4B5563] bg-[#F4F5F7] px-2 py-0.5 rounded truncate max-w-[200px]">
+                        ⚡ {post.milestoneTitle}
+                      </span>
+                      <span className="text-[11px] text-[#9CA3AF]">•</span>
+                      <span className="text-[11px] text-[#6B7280]">
+                        {post.author} ({post.dateStr})
+                      </span>
                     </div>
 
                     <div className="shrink-0 flex items-center gap-1.5">
                       {post.isMilestoneAchievement && (
-                        <Badge variant="lime" className="text-[9px] py-0.2 hidden sm:inline-flex">
-                          🏆 Milestone
-                        </Badge>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#FEF9C3] text-[#854D0E] border border-[#FDE047] flex items-center gap-1">
+                          🏆 Escrow Goal
+                        </span>
                       )}
-                      <Badge
-                        variant={post.status === "verified" ? "lime" : "outline"}
-                        className="text-[10px] py-0.2"
+                      <span
+                        className={cn(
+                          "font-bold text-[10px] tracking-wider uppercase px-2.5 py-0.5 rounded border",
+                          post.status === "verified"
+                            ? "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]"
+                            : "bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]"
+                        )}
                       >
-                        {post.status === "verified" ? "✓ Verified Check-in" : "Pending Review"}
-                      </Badge>
+                        {post.status === "verified" ? "DONE" : "IN REVIEW"}
+                      </span>
                     </div>
                   </div>
 
@@ -879,7 +884,7 @@ export function ProofOfWorkFeed({
                   <div>
                     <h5
                       onClick={() => setActiveMediaModal(post)}
-                      className="text-sm font-bold text-[#111827] hover:text-[#2D6606] cursor-pointer transition-colors"
+                      className="text-sm font-bold text-[#111827] hover:text-[#0C66E4] cursor-pointer transition-colors"
                     >
                       {post.title}
                     </h5>
@@ -888,41 +893,47 @@ export function ProofOfWorkFeed({
                     </p>
                   </div>
 
-                  {/* Metadata Chips: Branch, Commit, Changes Diff Accordion, Hours, Clickable Tags */}
-                  <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#EFF6FF] text-[#1D4ED8] font-mono text-[11px] font-medium border border-blue-200/60">
-                      <GitBranch className="w-3 h-3 text-[#2563EB]" />
-                      {post.branch}
-                    </span>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F8FAFC] text-[#334155] font-mono text-[11px] font-semibold border border-slate-200/80">
-                      <GitCommit className="w-3 h-3 text-[#64748B]" />
-                      {post.commitHash}
-                    </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedDiffId(expandedDiffId === post.id ? null : post.id);
-                      }}
-                      className={cn(
-                        "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-mono text-[11px] font-semibold border transition-all cursor-pointer",
-                        expandedDiffId === post.id
-                          ? "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC] ring-2 ring-[#BBF7D0]"
-                          : "bg-[#F0FDF4] text-[#15803D] border-green-200/60 hover:bg-[#DCFCE7]"
-                      )}
-                      title="Toggle inline code changes diff"
-                    >
-                      <FileText className="w-3 h-3 text-emerald-600" />
-                      <span>{post.commitDiff}</span>
-                      {expandedDiffId === post.id ? (
-                        <ChevronUp className="w-3 h-3 text-emerald-700" />
-                      ) : (
-                        <ChevronDown className="w-3 h-3 text-emerald-700" />
-                      )}
-                    </button>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F4F5F7] text-[#374151] font-semibold text-[11px]">
-                      <Clock className="w-3 h-3 text-[#6B7280]" />
-                      {post.hoursLogged}h Logged
-                    </span>
+                  {/* Jira Development Panel Widget */}
+                  <div className="bg-[#FAFBFD] border border-black/[0.06] rounded-lg p-2 flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2.5 text-xs font-mono text-[#374151] flex-wrap">
+                      <span className="flex items-center gap-1 font-semibold text-[#0C66E4] bg-white px-2 py-0.5 rounded border border-[#E5E7EB]">
+                        <GitBranch className="w-3.5 h-3.5 text-[#0C66E4]" />
+                        {post.branch}
+                      </span>
+                      <span className="flex items-center gap-1 text-[#4B5563] bg-white px-2 py-0.5 rounded border border-[#E5E7EB]">
+                        <GitCommit className="w-3.5 h-3.5 text-[#64748B]" />
+                        {post.commitHash}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedDiffId(expandedDiffId === post.id ? null : post.id);
+                        }}
+                        className={cn(
+                          "flex items-center gap-1 px-2 py-0.5 rounded border transition-colors cursor-pointer font-semibold",
+                          expandedDiffId === post.id
+                            ? "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]"
+                            : "bg-white text-[#15803D] border-[#E5E7EB] hover:bg-[#F0FDF4]"
+                        )}
+                        title="Toggle changed lines diff"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>{post.commitDiff}</span>
+                        {expandedDiffId === post.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-[11px] text-[#6B7280] font-semibold flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {post.hoursLogged}h Logged
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Jira-style Labels Bar */}
+                  <div className="flex items-center gap-1.5 flex-wrap text-xs">
+                    <span className="text-[10px] font-bold text-[#9CA3AF] uppercase">Labels:</span>
                     {post.tags.map((tag) => (
                       <button
                         key={tag}
@@ -931,14 +942,13 @@ export function ProofOfWorkFeed({
                           setSelectedTag(selectedTag === tag ? "all" : tag);
                         }}
                         className={cn(
-                          "px-2 py-0.5 rounded-md text-[10px] font-medium border transition-all cursor-pointer",
+                          "px-2 py-0.5 rounded text-[10px] font-medium transition-all cursor-pointer",
                           selectedTag === tag
-                            ? "bg-[#7C3AED] text-white border-[#6D28D9] font-bold shadow-2xs ring-2 ring-[#C4B5FD]"
-                            : "bg-[#EDE9FE] text-[#6D28D9] border-purple-200/50 hover:bg-[#DDD6FE]"
+                            ? "bg-[#0C66E4] text-white font-bold shadow-2xs"
+                            : "bg-[#F4F5F7] text-[#4B5563] hover:bg-[#E5E7EB]"
                         )}
-                        title={`Filter by #${tag}`}
                       >
-                        #{tag}
+                        {tag.toLowerCase()}
                       </button>
                     ))}
                   </div>
@@ -982,7 +992,7 @@ export function ProofOfWorkFeed({
                   {/* Bottom Actions Row */}
                   <div className="flex items-center justify-between pt-2 border-t border-[#F1F3F6] mt-0.5 gap-2 flex-wrap">
                     <div className="flex items-center gap-2 flex-wrap">
-                      {/* View More Button - Directly opens the popup modal */}
+                      {/* View Spec & Video Button - Directly opens the popup modal */}
                       <Button
                         variant="dark"
                         size="sm"
@@ -990,7 +1000,7 @@ export function ProofOfWorkFeed({
                         className="text-xs font-bold gap-1.5 h-7.5 px-3 bg-[#111827] hover:bg-black text-white cursor-pointer shadow-2xs"
                       >
                         <Eye className="w-3.5 h-3.5 text-[#88D635]" />
-                        <span>View More</span>
+                        <span>View Spec & Video</span>
                       </Button>
 
                       {role === "business" ? (
@@ -1002,7 +1012,7 @@ export function ProofOfWorkFeed({
                               setCheckIns((prev) =>
                                 prev.map((c) => (c.id === post.id ? { ...c, status: "verified" } : c))
                               );
-                              showToast(`Deliverable "${post.title}" verified! 72h Watchdog reset.`);
+                              showToast(`Deliverable "${post.issueKey}: ${post.title}" verified! 72h Watchdog reset.`);
                             }}
                             className="font-bold text-xs h-7.5 px-3 cursor-pointer"
                           >
@@ -1031,7 +1041,7 @@ export function ProofOfWorkFeed({
                           className="font-bold text-xs h-7.5 px-3"
                         >
                           <Sparkles className="w-3.5 h-3.5 mr-1 text-[#2D6606]" />
-                          Update
+                          Update Spec
                         </Button>
                       )}
 
@@ -1072,21 +1082,34 @@ export function ProofOfWorkFeed({
       {activeMediaModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-150">
           <div className="bg-white w-full max-w-4xl max-h-[92vh] rounded-2xl shadow-2xl border border-black/10 flex flex-col overflow-hidden">
-            {/* Modal Header */}
+            {/* Confluence Spec Modal Header */}
             <div className="p-4 sm:p-5 border-b border-[#F1F3F6] flex items-center justify-between bg-[#F8F9FA] shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#111827] text-[#88D635] flex items-center justify-center font-bold">
-                  <Play className="w-4 h-4 fill-current ml-0.5" />
+                <div className="w-9 h-9 rounded-xl bg-[#0C66E4] text-white flex items-center justify-center font-bold shadow-2xs">
+                  <FileText className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-[#111827] flex items-center gap-2">
-                    <span>{activeMediaModal.loomTitle}</span>
-                    <Badge variant={activeMediaModal.status === "verified" ? "lime" : "outline"} className="text-[10px]">
-                      {activeMediaModal.status === "verified" ? "Verified" : "Under Review"}
-                    </Badge>
+                  <div className="flex items-center gap-2 text-[11px] font-mono text-[#6B7280]">
+                    <span>LOCKLOOP</span>
+                    <span>/</span>
+                    <span className="font-bold text-[#0C66E4]">{activeMediaModal.issueKey}</span>
+                    <span className="bg-[#E2E8F0] px-1.5 py-0.2 rounded text-[10px] text-[#475569] font-medium">Confluence Deliverable Spec</span>
+                  </div>
+                  <h3 className="text-base font-bold text-[#111827] flex items-center gap-2 mt-0.5">
+                    <span>{activeMediaModal.title}</span>
+                    <span
+                      className={cn(
+                        "font-bold text-[10px] tracking-wider uppercase px-2 py-0.5 rounded border",
+                        activeMediaModal.status === "verified"
+                          ? "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC]"
+                          : "bg-[#FEF3C7] text-[#92400E] border-[#FDE68A]"
+                      )}
+                    >
+                      {activeMediaModal.status === "verified" ? "DONE" : "IN REVIEW"}
+                    </span>
                   </h3>
                   <p className="text-xs text-[#6B7280]">
-                    Logged by {activeMediaModal.author} • {activeMediaModal.dateStr} at {activeMediaModal.timeDisplay} ({activeMediaModal.hoursLogged}h)
+                    Logged by {activeMediaModal.author} • {activeMediaModal.dateStr} at {activeMediaModal.timeDisplay} ({activeMediaModal.hoursLogged}h logged)
                   </p>
                 </div>
               </div>
@@ -1200,6 +1223,33 @@ export function ProofOfWorkFeed({
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* Confluence-style Acceptance Criteria Checklist */}
+              <div className="bg-[#FAFBFD] p-3.5 rounded-xl border border-black/[0.06] flex flex-col gap-2.5">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-[#111827] flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Confluence Acceptance Criteria Specification</span>
+                  </h4>
+                  <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    3 of 3 Criteria Met
+                  </span>
+                </div>
+                <div className="space-y-1.5 text-xs text-zinc-700">
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">✓</span>
+                    <span>16:9 Loom/Screen walkthrough demonstrates verified user flow without regressions</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">✓</span>
+                    <span>Clean Git PR rebase on <code className="font-mono text-[10px] bg-zinc-100 px-1 py-0.5 rounded">{activeMediaModal.branch}</code> with tests passing</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-4 h-4 rounded bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px] font-bold">✓</span>
+                    <span>Milestone deliverables match Escrow SOW requirements and watchdog SLA</span>
+                  </div>
+                </div>
               </div>
 
               {/* Code Changes & Git Details */}
