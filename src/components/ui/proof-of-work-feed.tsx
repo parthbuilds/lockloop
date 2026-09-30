@@ -41,8 +41,8 @@ import {
   Download,
   Share2,
   RefreshCw,
+  Tag,
 } from "lucide-react";
-import { ALL_HOURS_24 } from "./milestone-escrow-room";
 
 // =============================================================================
 // TYPES & DATA STRUCTURES
@@ -72,17 +72,6 @@ export interface CheckInItem {
   escrowAmount?: number;
   notes?: string[];
   tags: string[];
-}
-
-export interface DayHeaderInfo {
-  label: string;
-  shortDay: string;
-  dayNumber: string;
-  dateStr: string;
-  dayIndex: number;
-  isToday: boolean;
-  monthName: string;
-  year: number;
 }
 
 // Fixed anchor date for 2026 sprint demo: Wednesday Sep 30, 2026
@@ -227,56 +216,6 @@ export const INITIAL_CHECKINS: CheckInItem[] = [
   },
 ];
 
-export const TIMELINE_HOURS = [
-  "8 AM", "9 AM", "10 AM", "11 AM", "12 PM",
-  "1 PM", "2 PM", "3 PM", "4 PM", "5 PM", "6 PM", "7 PM", "8 PM",
-];
-
-// Helper to calculate date by week offset
-export function getWeekDates(weekOffset: number, anchorIso: string = ANCHOR_TODAY_ISO): DayHeaderInfo[] {
-  const [ay, am, ad] = anchorIso.split("-").map(Number);
-  const anchorDate = new Date(ay, am - 1, ad);
-
-  // Find Monday of the week for anchorDate
-  const currentDayOfWeek = anchorDate.getDay(); // 0 is Sun, 1 is Mon, 3 is Wed
-  const daysFromMonday = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
-
-  const baseMonday = new Date(anchorDate);
-  baseMonday.setDate(anchorDate.getDate() - daysFromMonday + weekOffset * 7);
-
-  const days: DayHeaderInfo[] = [];
-  const dayNames = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ];
-
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(baseMonday);
-    d.setDate(baseMonday.getDate() + i);
-
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const dateStr = `${year}-${month}-${day}`;
-    const dayName = dayNames[i];
-    const label = `${dayName} ${day}`;
-
-    days.push({
-      label,
-      shortDay: dayName,
-      dayNumber: day,
-      dateStr,
-      dayIndex: i,
-      isToday: dateStr === anchorIso,
-      monthName: monthNames[d.getMonth()],
-      year,
-    });
-  }
-
-  return days;
-}
-
 interface ProofOfWorkFeedProps {
   role: "business" | "freelancer";
   showToast: (msg: string) => void;
@@ -294,25 +233,25 @@ export function ProofOfWorkFeed({
   onReleaseEscrow,
   className,
 }: ProofOfWorkFeedProps) {
-  // Navigation & Time controls
-  const [weekOffset, setWeekOffset] = React.useState<number>(0);
-  const [calendarSpan, setCalendarSpan] = React.useState<"week" | "day">("week");
-  const [selectedDayIndex, setSelectedDayIndex] = React.useState<number>(2); // Default to WED (Day index 2)
-  const [showAllHours, setShowAllHours] = React.useState<boolean>(false);
-
   // Filters & Search
   const [statusFilter, setStatusFilter] = React.useState<"all" | "verified" | "review" | "achievements">("all");
   const [milestoneFilter, setMilestoneFilter] = React.useState<string>("all");
   const [typeFilter, setTypeFilter] = React.useState<"all" | "loom" | "git" | "achievement">("all");
+  const [selectedTag, setSelectedTag] = React.useState<string>("all");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
 
   // Check-ins dataset
   const [checkIns, setCheckIns] = React.useState<CheckInItem[]>(INITIAL_CHECKINS);
 
-  // Active inspector modals
+  // Active inspector & revision modals
   const [activeMediaModal, setActiveMediaModal] = React.useState<CheckInItem | null>(null);
   const [activeAchievementModal, setActiveAchievementModal] = React.useState<CheckInItem | null>(null);
   const [showSubmitModal, setShowSubmitModal] = React.useState<boolean>(false);
+  const [revisionModalItem, setRevisionModalItem] = React.useState<CheckInItem | null>(null);
+  const [revisionNotes, setRevisionNotes] = React.useState<string>("");
+
+  // Inline expandable diff state (card id or null)
+  const [expandedDiffId, setExpandedDiffId] = React.useState<string | null>(null);
 
   // Video playback simulator inside modal
   const [isPlayingLoom, setIsPlayingLoom] = React.useState<boolean>(false);
@@ -325,29 +264,21 @@ export function ProofOfWorkFeed({
   const [submitBranch, setSubmitBranch] = React.useState<string>("feat/api-endpoints");
   const [submitCommit, setSubmitCommit] = React.useState<string>("5c98d2a");
   const [submitMilestoneId, setSubmitMilestoneId] = React.useState<string>("m2");
-  const [submitTimeSlot, setSubmitTimeSlot] = React.useState<string>("2 PM");
+  const [submitTimeSlot, setSubmitTimeSlot] = React.useState<string>("Feature / API");
   const [isMilestoneCheck, setIsMilestoneCheck] = React.useState<boolean>(false);
 
-  // Generate 7-day header array dynamically for current weekOffset
-  const currentWeekDays = React.useMemo(() => {
-    return getWeekDates(weekOffset, ANCHOR_TODAY_ISO);
-  }, [weekOffset]);
-
-  // Current month & year banner calculation
-  const monthBanner = React.useMemo(() => {
-    const firstDay = currentWeekDays[0];
-    const lastDay = currentWeekDays[6];
-    if (firstDay.monthName === lastDay.monthName) {
-      return `${firstDay.monthName} ${firstDay.year}`;
-    }
-    return `${firstDay.monthName} – ${lastDay.monthName} ${lastDay.year}`;
-  }, [currentWeekDays]);
-
-  const dateSpanText = React.useMemo(() => {
-    const firstDay = currentWeekDays[0];
-    const lastDay = currentWeekDays[6];
-    return `${firstDay.dayNumber} ${firstDay.monthName.slice(0, 3)} – ${lastDay.dayNumber} ${lastDay.monthName.slice(0, 3)} ${lastDay.year}`;
-  }, [currentWeekDays]);
+  // Dynamically compute all unique tags and item counts across all deliverables
+  const allUniqueTags = React.useMemo(() => {
+    const tagCountMap: Record<string, number> = {};
+    checkIns.forEach((item) => {
+      item.tags.forEach((tag) => {
+        tagCountMap[tag] = (tagCountMap[tag] || 0) + 1;
+      });
+    });
+    return Object.entries(tagCountMap)
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [checkIns]);
 
   // Filtered check-ins
   const filteredCheckIns = React.useMemo(() => {
@@ -365,6 +296,9 @@ export function ProofOfWorkFeed({
       if (typeFilter === "git" && !item.commitHash) return false;
       if (typeFilter === "achievement" && !item.isMilestoneAchievement) return false;
 
+      // Tag filter
+      if (selectedTag !== "all" && !item.tags.includes(selectedTag)) return false;
+
       // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
@@ -381,52 +315,7 @@ export function ProofOfWorkFeed({
 
       return true;
     });
-  }, [checkIns, statusFilter, milestoneFilter, typeFilter, searchQuery]);
-
-  // Active time slots
-  const activeHours = showAllHours ? ALL_HOURS_24 : TIMELINE_HOURS;
-
-  // Selected date string in Day view
-  const selectedDateStr = currentWeekDays[selectedDayIndex]?.dateStr || currentWeekDays[2].dateStr;
-  const selectedDayInfo = currentWeekDays[selectedDayIndex] || currentWeekDays[2];
-
-  // Navigation handlers
-  const handleNavLeft = () => {
-    if (calendarSpan === "week") {
-      setWeekOffset((prev) => prev - 1);
-      showToast("Moved to previous week");
-    } else {
-      if (selectedDayIndex > 0) {
-        setSelectedDayIndex((prev) => prev - 1);
-      } else {
-        setWeekOffset((prev) => prev - 1);
-        setSelectedDayIndex(6);
-      }
-      showToast("Moved to previous day");
-    }
-  };
-
-  const handleNavRight = () => {
-    if (calendarSpan === "week") {
-      setWeekOffset((prev) => prev + 1);
-      showToast("Moved to next week");
-    } else {
-      if (selectedDayIndex < 6) {
-        setSelectedDayIndex((prev) => prev + 1);
-      } else {
-        setWeekOffset((prev) => prev + 1);
-        setSelectedDayIndex(0);
-      }
-      showToast("Moved to next day");
-    }
-  };
-
-  const handleJumpToToday = () => {
-    setWeekOffset(0);
-    const todayIndex = currentWeekDays.findIndex((d) => d.isToday);
-    setSelectedDayIndex(todayIndex >= 0 ? todayIndex : 2);
-    showToast(`Jumped to Today (WED 30, Sep 30, 2026)`);
-  };
+  }, [checkIns, statusFilter, milestoneFilter, typeFilter, selectedTag, searchQuery]);
 
   // Submit check-in handler
   const handleCreateCheckIn = (e: React.FormEvent) => {
@@ -436,7 +325,6 @@ export function ProofOfWorkFeed({
       return;
     }
 
-    const targetDate = currentWeekDays[selectedDayIndex]?.dateStr || ANCHOR_TODAY_ISO;
     const newCheckIn: CheckInItem = {
       id: `po-${Date.now()}`,
       title: submitTitle,
@@ -451,9 +339,9 @@ export function ProofOfWorkFeed({
           : submitMilestoneId === "m2"
           ? "Milestone 2: Core UI & API Sync"
           : "Milestone 3: Stripe Billing",
-      dateStr: targetDate,
+      dateStr: ANCHOR_TODAY_ISO,
       timeSlot: submitTimeSlot,
-      timeDisplay: `${submitTimeSlot}:00`,
+      timeDisplay: "2:00 PM",
       loomDuration: "03:45",
       loomTitle: `${submitTitle} Walkthrough`,
       branch: submitBranch,
@@ -464,11 +352,11 @@ export function ProofOfWorkFeed({
       isMilestoneAchievement: isMilestoneCheck,
       achievementBadge: isMilestoneCheck ? "Sprint Milestone Achievement" : undefined,
       escrowAmount: isMilestoneCheck ? 1950 : undefined,
-      tags: ["Check-in", "Sprint 3"],
+      tags: ["Check-in", "Sprint 3", submitTimeSlot],
     };
 
     setCheckIns((prev) => [newCheckIn, ...prev]);
-    showToast(`Check-in "${submitTitle}" successfully posted to the timeline!`);
+    showToast(`Deliverable "${submitTitle}" successfully verified and posted to Proof-of-Work stream!`);
     setShowSubmitModal(false);
     setSubmitTitle("");
     setSubmitDesc("");
@@ -803,6 +691,69 @@ export function ProofOfWorkFeed({
             )}
           </div>
         </div>
+
+        {/* ========================================================================= */}
+        {/* INTERACTIVE TAG RAIL (Click anywhere or on card chips to filter)          */}
+        {/* ========================================================================= */}
+        <div className="flex items-center gap-1.5 pt-2 border-t border-[#F1F3F6] overflow-x-auto no-scrollbar py-0.5">
+          <span className="text-[11px] font-bold text-[#6B7280] shrink-0 mr-1 flex items-center gap-1">
+            <Tag className="w-3 h-3 text-[#7C3AED]" />
+            Tags:
+          </span>
+
+          <button
+            onClick={() => setSelectedTag("all")}
+            className={cn(
+              "px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5",
+              selectedTag === "all"
+                ? "bg-[#111827] text-white font-bold shadow-2xs"
+                : "bg-[#F4F5F7] text-[#4B5563] hover:bg-[#E5E7EB]"
+            )}
+          >
+            <span>#All</span>
+            <span
+              className={cn(
+                "text-[10px] font-mono px-1 rounded-full",
+                selectedTag === "all" ? "bg-white/20 text-white" : "bg-[#E5E7EB] text-[#4B5563]"
+              )}
+            >
+              {checkIns.length}
+            </span>
+          </button>
+
+          {allUniqueTags.map(({ tag, count }) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(selectedTag === tag ? "all" : tag)}
+              className={cn(
+                "px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5",
+                selectedTag === tag
+                  ? "bg-[#7C3AED] text-white font-bold shadow-2xs ring-2 ring-[#C4B5FD]"
+                  : "bg-[#F3E8FF] text-[#6D28D9] hover:bg-[#E9D5FF]"
+              )}
+            >
+              <span>#{tag}</span>
+              <span
+                className={cn(
+                  "text-[10px] font-mono px-1 rounded-full",
+                  selectedTag === tag ? "bg-white/30 text-white" : "bg-purple-200/80 text-[#6D28D9]"
+                )}
+              >
+                {count}
+              </span>
+            </button>
+          ))}
+
+          {selectedTag !== "all" && (
+            <button
+              onClick={() => setSelectedTag("all")}
+              className="text-[11px] font-semibold text-[#DC2626] hover:text-[#991B1B] ml-1 shrink-0 flex items-center gap-1 cursor-pointer bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded-md"
+            >
+              <X className="w-3 h-3" />
+              Reset #{selectedTag}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ========================================================================= */}
@@ -937,7 +888,7 @@ export function ProofOfWorkFeed({
                     </p>
                   </div>
 
-                  {/* Metadata Chips: Branch, Commit, Changes Diff, Hours, Tags */}
+                  {/* Metadata Chips: Branch, Commit, Changes Diff Accordion, Hours, Clickable Tags */}
                   <div className="flex flex-wrap items-center gap-1.5 text-xs">
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#EFF6FF] text-[#1D4ED8] font-mono text-[11px] font-medium border border-blue-200/60">
                       <GitBranch className="w-3 h-3 text-[#2563EB]" />
@@ -947,20 +898,86 @@ export function ProofOfWorkFeed({
                       <GitCommit className="w-3 h-3 text-[#64748B]" />
                       {post.commitHash}
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F0FDF4] text-[#15803D] font-mono text-[11px] font-semibold border border-green-200/60">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedDiffId(expandedDiffId === post.id ? null : post.id);
+                      }}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-mono text-[11px] font-semibold border transition-all cursor-pointer",
+                        expandedDiffId === post.id
+                          ? "bg-[#DCFCE7] text-[#15803D] border-[#86EFAC] ring-2 ring-[#BBF7D0]"
+                          : "bg-[#F0FDF4] text-[#15803D] border-green-200/60 hover:bg-[#DCFCE7]"
+                      )}
+                      title="Toggle inline code changes diff"
+                    >
                       <FileText className="w-3 h-3 text-emerald-600" />
-                      {post.commitDiff}
-                    </span>
+                      <span>{post.commitDiff}</span>
+                      {expandedDiffId === post.id ? (
+                        <ChevronUp className="w-3 h-3 text-emerald-700" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3 text-emerald-700" />
+                      )}
+                    </button>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F4F5F7] text-[#374151] font-semibold text-[11px]">
                       <Clock className="w-3 h-3 text-[#6B7280]" />
                       {post.hoursLogged}h Logged
                     </span>
                     {post.tags.map((tag) => (
-                      <span key={tag} className="px-2 py-0.5 rounded-md bg-[#EDE9FE] text-[#6D28D9] font-medium text-[10px] border border-purple-200/50">
+                      <button
+                        key={tag}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTag(selectedTag === tag ? "all" : tag);
+                        }}
+                        className={cn(
+                          "px-2 py-0.5 rounded-md text-[10px] font-medium border transition-all cursor-pointer",
+                          selectedTag === tag
+                            ? "bg-[#7C3AED] text-white border-[#6D28D9] font-bold shadow-2xs ring-2 ring-[#C4B5FD]"
+                            : "bg-[#EDE9FE] text-[#6D28D9] border-purple-200/50 hover:bg-[#DDD6FE]"
+                        )}
+                        title={`Filter by #${tag}`}
+                      >
                         #{tag}
-                      </span>
+                      </button>
                     ))}
                   </div>
+
+                  {/* Inline Expandable Mini Git Diff Accordion */}
+                  {expandedDiffId === post.id && (
+                    <div className="p-3 rounded-lg bg-[#0F172A] border border-black/10 text-white font-mono text-xs flex flex-col gap-2 animate-in fade-in slide-in-from-top-1 duration-150 shadow-inner">
+                      <div className="flex items-center justify-between text-[11px] pb-1.5 border-b border-white/10 text-zinc-400">
+                        <span className="flex items-center gap-1.5 text-zinc-200 font-semibold">
+                          <GitBranch className="w-3.5 h-3.5 text-blue-400" />
+                          {post.branch} &bull; commit {post.commitHash}
+                        </span>
+                        <span className="text-emerald-400 font-bold bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/40">
+                          {post.commitDiff}
+                        </span>
+                      </div>
+                      <div className="space-y-0.5 text-[11px] leading-relaxed select-text overflow-x-auto py-0.5">
+                        <p className="text-zinc-500">@@ -42,8 +42,14 @@ export const authOptions = &#123;</p>
+                        <p className="text-red-400 bg-red-950/40 px-1 rounded">-  session: &#123; strategy: &quot;jwt&quot; &#125;,</p>
+                        <p className="text-emerald-400 bg-emerald-950/50 px-1 rounded">+  session: &#123; strategy: &quot;jwt&quot;, maxAge: 30 * 24 * 60 * 60 &#125;,</p>
+                        <p className="text-emerald-400 bg-emerald-950/50 px-1 rounded">+  // Row-Level Security tenant isolation verified</p>
+                        <p className="text-emerald-400 bg-emerald-950/50 px-1 rounded">+  callbacks: &#123; session: async (&#123; session, token &#125;) =&gt; (&#123; ...session, tenantId: token.sub &#125;) &#125;,</p>
+                        <p className="text-zinc-400">   providers: [GoogleProvider, GitHubProvider],</p>
+                      </div>
+                      <div className="flex items-center justify-between pt-1 border-t border-white/10 text-[10px]">
+                        <span className="text-emerald-400 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          12 automated unit tests passed
+                        </span>
+                        <button
+                          onClick={() => showToast(`Opened GitHub PR Diff for commit ${post.commitHash}`)}
+                          className="text-blue-400 hover:text-blue-300 flex items-center gap-1 font-semibold cursor-pointer"
+                        >
+                          <span>Inspect PR on GitHub</span>
+                          <ExternalLink className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Bottom Actions Row */}
                   <div className="flex items-center justify-between pt-2 border-t border-[#F1F3F6] mt-0.5 gap-2 flex-wrap">
@@ -977,20 +994,35 @@ export function ProofOfWorkFeed({
                       </Button>
 
                       {role === "business" ? (
-                        <Button
-                          variant="lime"
-                          size="sm"
-                          onClick={() => {
-                            setCheckIns((prev) =>
-                              prev.map((c) => (c.id === post.id ? { ...c, status: "verified" } : c))
-                            );
-                            showToast(`Deliverable "${post.title}" verified! 72h Watchdog reset.`);
-                          }}
-                          className="font-bold text-xs h-7.5 px-3"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                          Acknowledge
-                        </Button>
+                        <>
+                          <Button
+                            variant="lime"
+                            size="sm"
+                            onClick={() => {
+                              setCheckIns((prev) =>
+                                prev.map((c) => (c.id === post.id ? { ...c, status: "verified" } : c))
+                              );
+                              showToast(`Deliverable "${post.title}" verified! 72h Watchdog reset.`);
+                            }}
+                            className="font-bold text-xs h-7.5 px-3 cursor-pointer"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                            Verify & Approve
+                          </Button>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setRevisionModalItem(post);
+                              setRevisionNotes("");
+                            }}
+                            className="text-xs h-7.5 px-2.5 text-amber-700 border-amber-300 hover:bg-amber-50 cursor-pointer font-semibold"
+                          >
+                            <AlertCircle className="w-3 h-3 mr-1 text-amber-600" />
+                            Request Changes
+                          </Button>
+                        </>
                       ) : (
                         <Button
                           variant="outline"
@@ -1438,16 +1470,19 @@ export function ProofOfWorkFeed({
 
                 <div>
                   <label className="block text-xs font-bold text-[#111827] mb-1">
-                    Timeline Time Slot
+                    Deliverable Category
                   </label>
                   <select
                     value={submitTimeSlot}
                     onChange={(e) => setSubmitTimeSlot(e.target.value)}
-                    className="w-full text-xs p-2 rounded-lg border border-[#E5E7EB] outline-hidden font-mono"
+                    className="w-full text-xs p-2 rounded-lg border border-[#E5E7EB] outline-hidden text-[#111827]"
                   >
-                    {activeHours.map((h) => (
-                      <option key={h} value={h}>{h}</option>
-                    ))}
+                    <option value="Feature / API">Feature / API</option>
+                    <option value="UI & Frontend">UI & Frontend</option>
+                    <option value="Database & Schema">Database & Schema</option>
+                    <option value="DevOps & Docker">DevOps & Docker</option>
+                    <option value="Security & Auth">Security & Auth</option>
+                    <option value="Milestone Release">Milestone Release</option>
                   </select>
                 </div>
               </div>
@@ -1497,7 +1532,7 @@ export function ProofOfWorkFeed({
                   variant="outline"
                   size="sm"
                   onClick={() => setShowSubmitModal(false)}
-                  className="text-xs"
+                  className="text-xs cursor-pointer"
                 >
                   Cancel
                 </Button>
@@ -1505,9 +1540,92 @@ export function ProofOfWorkFeed({
                   type="submit"
                   variant="lime"
                   size="sm"
-                  className="text-xs font-bold"
+                  className="text-xs font-bold cursor-pointer"
                 >
                   Publish to Stream & Reset SLA
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 10. REQUEST REVISION / CHANGES DIALOG MODAL (Client SLA Pause)            */}
+      {/* ========================================================================= */}
+      {revisionModalItem && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-black/10 flex flex-col overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-[#F1F3F6] flex items-center justify-between bg-[#F8F9FA]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                  <AlertCircle className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#111827]">Request Changes on Deliverable</h3>
+                  <p className="text-[11px] text-[#6B7280]">
+                    {revisionModalItem.title} &bull; commit {revisionModalItem.commitHash}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setRevisionModalItem(null)}
+                className="p-1 rounded-lg hover:bg-[#E5E7EB] text-[#6B7280] hover:text-[#111827] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                showToast(`Revision request sent for "${revisionModalItem.title}". 72h Watchdog timer paused.`);
+                setRevisionModalItem(null);
+                setRevisionNotes("");
+              }}
+              className="p-4 sm:p-5 flex flex-col gap-3.5"
+            >
+              <div className="p-2.5 bg-amber-50 rounded-lg border border-amber-200/80 text-xs text-amber-800 leading-relaxed">
+                <p className="font-semibold flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-amber-700" />
+                  Freezes Watchdog Auto-Release:
+                </p>
+                <p className="text-[11px] mt-0.5 text-amber-700">
+                  Submitting a revision pauses the 72-hour countdown until the freelancer posts an updated code walkthrough.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#111827] mb-1">
+                  Revision Feedback / Video Timestamp Note *
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  placeholder="e.g. Please check 02:14 in the Loom video — can we add edge-case error handling for expired OAuth tokens?"
+                  value={revisionNotes}
+                  onChange={(e) => setRevisionNotes(e.target.value)}
+                  className="w-full text-xs p-2.5 rounded-lg border border-[#E5E7EB] focus:border-[#111827] outline-hidden resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#F1F3F6]">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRevisionModalItem(null)}
+                  className="text-xs cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="dark"
+                  size="sm"
+                  className="text-xs font-bold bg-[#111827] text-white hover:bg-black cursor-pointer"
+                >
+                  Submit Revision Note
                 </Button>
               </div>
             </form>
