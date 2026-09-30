@@ -21,6 +21,7 @@ import {
   ResourceShareManager,
   ProofOfWorkFeed,
   MilestoneProjectTimeline,
+  AuditedTimesheetManager,
 } from "@/components/ui";
 import {
   ShieldCheck,
@@ -288,86 +289,11 @@ export default function DashboardPage() {
         {/* VIEW 4: TIMESHEETS & HOUR AUDITS                                          */}
         {/* ========================================================================= */}
         {activeTab === "timesheet" && (
-          <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1 pb-3">
-            <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-black/[0.06]">
-              <div>
-                <h3 className="text-base font-bold text-[#111827]">
-                  Audited Timesheet & Version Log
-                </h3>
-                <p className="text-xs text-[#6B7280]">
-                  34.7 total hours verified across 18 commits. Compliant for tax & invoicing.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => showToast("Exported verified timesheet CSV")}
-                  className="gap-1.5"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Export CSV</span>
-                </Button>
-
-              </div>
-            </div>
-
-            <Card className="divide-y divide-[#F1F3F6]">
-              {[
-                {
-                  id: "TS-108",
-                  date: "Today, 14:30",
-                  task: "Setup OAuth callbacks & JWT session cookie encryption",
-                  hours: "4.2h",
-                  commit: "git: 8c3f20a",
-                  milestone: "M2",
-                },
-                {
-                  id: "TS-107",
-                  date: "Yesterday, 18:15",
-                  task: "Responsive Recharts layout & bento command cards",
-                  hours: "5.5h",
-                  commit: "git: 7b2190f",
-                  milestone: "M2",
-                },
-                {
-                  id: "TS-106",
-                  date: "23 Feb 2026",
-                  task: "Prisma schema migrations & RLS policy enforcement",
-                  hours: "6.0h",
-                  commit: "git: 3a992e1",
-                  milestone: "M1",
-                },
-              ].map((entry) => (
-                <div
-                  key={entry.id}
-                  className="py-3 flex items-center justify-between gap-4 text-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono font-bold text-[#111827]">
-                      {entry.id}
-                    </span>
-                    <div>
-                      <span className="font-semibold text-[#111827] block">
-                        {entry.task}
-                      </span>
-                      <span className="text-[11px] text-[#6B7280]">
-                        {entry.date} • Milestone {entry.milestone}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 font-mono">
-                    <span className="font-bold text-[#111827] bg-[#F4F5F7] px-2 py-1 rounded-md">
-                      {entry.hours}
-                    </span>
-                    <span className="text-[#6B7280]">{entry.commit}</span>
-                  </div>
-                </div>
-              ))}
-            </Card>
-            </div>
-          </div>
+          <AuditedTimesheetManager
+            role={role}
+            showToast={showToast}
+            className="flex-1"
+          />
         )}
 
         {/* ========================================================================= */}

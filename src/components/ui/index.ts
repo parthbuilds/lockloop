@@ -21,3 +21,4 @@ export * from "./milestone-escrow-room";
 export * from "./resource-share-manager";
 export * from "./proof-of-work-feed";
 export * from "./milestone-project-timeline";
+export * from "./audited-timesheet-manager";
