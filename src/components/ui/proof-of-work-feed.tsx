@@ -274,19 +274,6 @@ export function ProofOfWorkFeed({
   const [submitTimeSlot, setSubmitTimeSlot] = React.useState<string>("Feature / API");
   const [isMilestoneCheck, setIsMilestoneCheck] = React.useState<boolean>(false);
 
-  // Dynamically compute all unique tags and item counts across all deliverables
-  const allUniqueTags = React.useMemo(() => {
-    const tagCountMap: Record<string, number> = {};
-    checkIns.forEach((item) => {
-      item.tags.forEach((tag) => {
-        tagCountMap[tag] = (tagCountMap[tag] || 0) + 1;
-      });
-    });
-    return Object.entries(tagCountMap)
-      .map(([tag, count]) => ({ tag, count }))
-      .sort((a, b) => b.count - a.count);
-  }, [checkIns]);
-
   // Filtered check-ins
   const filteredCheckIns = React.useMemo(() => {
     return checkIns.filter((item) => {
@@ -373,28 +360,46 @@ export function ProofOfWorkFeed({
   return (
     <div className={cn("w-full min-w-0 flex flex-col gap-3.5 flex-1 min-h-0 overflow-hidden", className)}>
       {/* ========================================================================= */}
-      {/* 1. JIRA-STYLE ACTIVE SPRINT HEADER & SPRINT GOAL                          */}
+      {/* 1. STREAMLINED PROOF-OF-WORK HEADER & VITAL HUD STRIP                     */}
       {/* ========================================================================= */}
-      <div className="w-full bg-white p-3.5 sm:p-4 rounded-xl border border-black/[0.06] shadow-[0px_2px_10px_rgba(0,0,0,0.04)] flex flex-col gap-3 shrink-0">
-        {/* Breadcrumb + Sprint Title + Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="w-full bg-white p-3.5 sm:p-4 rounded-xl border border-black/[0.06] shadow-[0px_2px_8px_rgba(0,0,0,0.03)] flex flex-col gap-3 shrink-0">
+        {/* Row 1: Header + Vital Status HUD + Action Button */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-col gap-1 min-w-0">
-            <div className="flex items-center gap-2 text-[11px] font-mono font-semibold text-[#6B7280]">
-              <span className="text-[#0C66E4] hover:underline cursor-pointer">LOCKLOOP</span>
-              <span>/</span>
-              <span>SPRINT 3</span>
-              <span className="bg-[#DCFCE7] text-[#15803D] px-1.5 py-0.2 rounded text-[10px] font-bold uppercase">
-                Sprint Active
+            <div className="flex items-center gap-2 flex-wrap text-xs">
+              <span className="font-bold text-sm text-[#111827] tracking-tight">
+                Client Proof-of-Work Stream
               </span>
-              <span>•</span>
-              <span className="text-[#166534] font-semibold">SOW-2026-9921 ($4,950 Contract Total)</span>
+              <span className="bg-[#DCFCE7] text-[#15803D] px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border border-[#BBF7D0]">
+                Sprint 3 Active
+              </span>
+              <span className="text-[#9CA3AF]">•</span>
+              <span className="text-[11px] font-mono text-[#6B7280]">
+                SOW-2026-9921 ($4,950 Total)
+              </span>
             </div>
-            <h2 className="text-lg font-bold tracking-tight text-[#111827] flex items-center gap-2">
-              <span>Client Proof-of-Work Verification Stream</span>
-              <span className="text-xs font-normal text-[#6B7280] hidden md:inline">
-                (Sep 24 – Oct 08, 2026)
+            
+            {/* Quick Metrics HUD Strip (Consolidated from bulky separate cards) */}
+            <div className="flex items-center gap-3 flex-wrap text-[11px] text-[#4B5563] pt-0.5">
+              <span className="flex items-center gap-1 font-mono text-[#15803D] font-semibold">
+                <Clock className="w-3.5 h-3.5 text-[#15803D]" />
+                72h SLA Watchdog: 68h 14m
               </span>
-            </h2>
+              <span className="text-[#D1D5DB]">•</span>
+              <span className="flex items-center gap-1">
+                <Video className="w-3.5 h-3.5 text-[#7C3AED]" />
+                <span>24.2m Loom Proof</span>
+              </span>
+              <span className="text-[#D1D5DB]">•</span>
+              <span className="flex items-center gap-1 font-mono">
+                <GitCommit className="w-3.5 h-3.5 text-[#0369A1]" />
+                <span>18 Commits (34.7h)</span>
+              </span>
+              <span className="text-[#D1D5DB]">•</span>
+              <span className="text-[#166534] font-semibold font-mono">
+                $1,500 Released / $1,950 In Review
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
@@ -402,7 +407,7 @@ export function ProofOfWorkFeed({
               variant="dark"
               size="sm"
               onClick={() => setShowSubmitModal(true)}
-              className="text-xs font-bold gap-1.5 shrink-0 bg-[#0C66E4] hover:bg-[#0055CC] text-white"
+              className="text-xs font-bold gap-1.5 shrink-0 bg-[#0C66E4] hover:bg-[#0055CC] text-white shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{role === "business" ? "Verify / Add Log" : "Log Deliverable Spec"}</span>
@@ -410,331 +415,144 @@ export function ProofOfWorkFeed({
           </div>
         </div>
 
-        {/* Confluence/Jira Sprint Goal Callout */}
-        <div className="bg-[#F8FAFC] border border-[#E2E8F0] p-2.5 rounded-lg flex items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="font-bold text-[#334155] shrink-0 uppercase tracking-wider text-[10px] bg-white border border-[#CBD5E1] px-1.5 py-0.5 rounded">
-              Sprint Goal
-            </span>
-            <p className="text-[#475569] truncate">
-              Establish secure multi-tenant sessions, Prisma PostgreSQL connection pooling, and Stripe webhook listeners.
-            </p>
-          </div>
-          <span className="text-[11px] font-mono text-[#64748B] shrink-0 hidden sm:inline-block">
-            5 of 6 issues resolved (83%)
-          </span>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* 2. TOP METRICS CARDS ROW (Exact Style of Milestones & Escrow Delivery)    */}
-        {/* ========================================================================= */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2.5 border-t border-[#F1F3F6]">
-          {/* Top Card 1: Active Sprint & Dead-Man Watchdog */}
-          <div className="bg-[#FAFBFD] p-3 rounded-xl border border-black/[0.06] flex flex-col justify-between gap-2 shadow-2xs hover:shadow-xs transition-shadow">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-[#111827] text-[#88D635] flex items-center justify-center font-bold text-xs">
-                  <Flame className="w-3.5 h-3.5 text-[#88D635]" />
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold text-[#111827] block">
-                    Sprint 3: Active
-                  </span>
-                  <span className="text-[10px] text-[#6B7280]">
-                    72h Dead-Man Watchdog
-                  </span>
-                </div>
-              </div>
-              <Badge variant="lime" className="text-[9px] px-1.5 py-0.2">
-                Green Zone
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between text-xs pt-1 border-t border-black/[0.04]">
-              <span className="text-[11px] text-[#6B7280]">Timer Remaining:</span>
-              <span className="text-[11px] font-mono font-bold text-[#15803D] flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                68h 14m
-              </span>
-            </div>
-          </div>
-
-          {/* Top Card 2: Milestone Achievements Pipeline */}
-          <div className="bg-[#FAFBFD] p-3 rounded-xl border border-black/[0.06] flex flex-col justify-between gap-2 shadow-2xs hover:shadow-xs transition-shadow">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-[#88D635]/20 text-[#2D6606] flex items-center justify-center font-bold text-xs">
-                  <Trophy className="w-3.5 h-3.5 text-[#2D6606]" />
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold text-[#111827] block">
-                    Milestones Pipeline
-                  </span>
-                  <span className="text-[10px] text-[#6B7280]">
-                    2 of 4 Goals Achieved
-                  </span>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono font-bold bg-[#DCFCE7] text-[#15803D] px-1.5 py-0.5 rounded border border-[#BBF7D0]">
-                $1,500 Released
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs pt-1 border-t border-black/[0.04]">
-              <span className="text-[11px] text-[#6B7280]">In Review:</span>
-              <span className="text-[11px] font-bold text-[#B45309]">
-                M2 Core UI ($1,950)
-              </span>
-            </div>
-          </div>
-
-          {/* Top Card 3: 16:9 Loom & Video Demos */}
-          <div className="bg-[#FAFBFD] p-3 rounded-xl border border-black/[0.06] flex flex-col justify-between gap-2 shadow-2xs hover:shadow-xs transition-shadow">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-[#EDE9FE] text-[#6D28D9] flex items-center justify-center font-bold text-xs">
-                  <Video className="w-3.5 h-3.5 text-[#6D28D9]" />
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold text-[#111827] block">
-                    16:9 Loom Demos
-                  </span>
-                  <span className="text-[10px] text-[#6B7280]">
-                    Visual Proof Verified
-                  </span>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono font-bold bg-[#F4F5F7] text-[#4B5563] px-1.5 py-0.5 rounded">
-                24.2 mins
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs pt-1 border-t border-black/[0.04]">
-              <span className="text-[11px] text-[#6B7280]">Latest Check-in:</span>
-              <span className="text-[11px] font-semibold text-[#111827] truncate max-w-[130px]">
-                OAuth Callback (4h ago)
-              </span>
-            </div>
-          </div>
-
-          {/* Top Card 4: Audited Commits & Hours */}
-          <div className="bg-[#FAFBFD] p-3 rounded-xl border border-black/[0.06] flex flex-col justify-between gap-2 shadow-2xs hover:shadow-xs transition-shadow">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-[#E0F2FE] text-[#0369A1] flex items-center justify-center font-bold text-xs">
-                  <GitCommit className="w-3.5 h-3.5 text-[#0369A1]" />
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold text-[#111827] block">
-                    Verified Git Work
-                  </span>
-                  <span className="text-[10px] text-[#6B7280]">
-                    18 Commits Logged
-                  </span>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono font-bold bg-[#E0F2FE] text-[#0369A1] px-1.5 py-0.5 rounded border border-[#BAE6FD]">
-                34.7 Hours
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs pt-1 border-t border-black/[0.04]">
-              <span className="text-[11px] text-[#6B7280]">PR Diff:</span>
-              <span className="text-[11px] font-mono text-[#111827]">
-                +142 / -12 lines (#42)
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* 3. UNIFIED CLEAN FILTER & SEARCH TOOLBAR                                  */}
-        {/* ========================================================================= */}
-        <div className="flex flex-col gap-2.5 pt-2.5 border-t border-[#F1F3F6]">
-          {/* Row 1: Status Filter Pills, Milestone Dropdown, Media Toggle & Search */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
-            {/* Left: Status Filter Pills (Linear / Jira Segmented Style) */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[11px] font-bold text-[#6B7280] mr-1 flex items-center gap-1">
-                <Filter className="w-3.5 h-3.5 text-[#4B5563]" />
-                Filter:
-              </span>
-
-              {[
-                { id: "all", label: "All Items", count: checkIns.length },
-                {
-                  id: "verified",
-                  label: "Verified",
-                  count: checkIns.filter((c) => c.status === "verified").length,
-                  dot: "bg-emerald-500",
-                },
-                {
-                  id: "review",
-                  label: "In Review (72h SLA)",
-                  count: checkIns.filter((c) => c.status === "review").length,
-                  dot: "bg-amber-500",
-                },
-                {
-                  id: "achievements",
-                  label: "🏆 Milestones Only",
-                  count: checkIns.filter((c) => c.isMilestoneAchievement).length,
-                },
-              ].map((pill) => (
-                <button
-                  key={pill.id}
-                  onClick={() => setStatusFilter(pill.id as typeof statusFilter)}
-                  className={cn(
-                    "px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 border",
-                    statusFilter === pill.id
-                      ? "bg-[#111827] text-white font-semibold border-[#111827] shadow-xs"
-                      : "bg-[#F8F9FA] text-[#4B5563] border-[#E5E7EB] hover:bg-[#E5E7EB] hover:text-[#111827]"
-                  )}
-                >
-                  {pill.dot && <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", pill.dot)} />}
-                  <span>{pill.label}</span>
-                  <span
-                    className={cn(
-                      "text-[10px] font-mono px-1.5 py-0.2 rounded-full",
-                      statusFilter === pill.id ? "bg-white/20 text-white font-bold" : "bg-[#E5E7EB] text-[#4B5563]"
-                    )}
-                  >
-                    {pill.count}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {/* Right: Milestone Selector, Media Type Switcher & Search Bar */}
-            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-              {/* Milestone Dropdown */}
-              <select
-                value={milestoneFilter}
-                onChange={(e) => setMilestoneFilter(e.target.value)}
-                className="text-xs bg-[#F8F9FA] border border-[#E5E7EB] rounded-lg px-2.5 py-1.5 text-[#111827] font-semibold outline-hidden cursor-pointer hover:bg-[#F3F4F6] transition-colors"
-              >
-                <option value="all">All Milestones</option>
-                <option value="m1">M1: DB & Architecture (Released)</option>
-                <option value="m2">M2: Core UI & API Sync (In Review)</option>
-                <option value="m3">M3: Stripe Payouts (Locked)</option>
-              </select>
-
-              {/* Media Type Filter */}
-              <div className="flex items-center bg-[#F4F5F7] border border-[#E5E7EB] rounded-lg p-0.5 text-xs font-semibold text-[#4B5563]">
-                <button
-                  onClick={() => setTypeFilter("all")}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md cursor-pointer transition-all",
-                    typeFilter === "all" ? "bg-white text-[#111827] shadow-2xs font-bold" : "hover:text-[#111827]"
-                  )}
-                >
-                  All Media
-                </button>
-                <button
-                  onClick={() => setTypeFilter("loom")}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md cursor-pointer flex items-center gap-1 transition-all",
-                    typeFilter === "loom" ? "bg-white text-[#111827] shadow-2xs font-bold" : "hover:text-[#111827]"
-                  )}
-                >
-                  <Video className="w-3 h-3 text-[#2D6606]" />
-                  <span>Loom</span>
-                </button>
-                <button
-                  onClick={() => setTypeFilter("git")}
-                  className={cn(
-                    "px-2.5 py-1 rounded-md cursor-pointer flex items-center gap-1 transition-all",
-                    typeFilter === "git" ? "bg-white text-[#111827] shadow-2xs font-bold" : "hover:text-[#111827]"
-                  )}
-                >
-                  <GitCommit className="w-3 h-3 text-[#0369A1]" />
-                  <span>Commits</span>
-                </button>
-              </div>
-
-              {/* Search Bar */}
-              <div className="relative w-full sm:w-56 shrink-0">
-                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
-                <input
-                  type="text"
-                  placeholder="Search commits, Loom, PRs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full text-xs bg-[#F8F9FA] border border-[#E5E7EB] focus:border-[#0C66E4] focus:bg-white rounded-lg pl-8 pr-7 py-1.5 outline-hidden transition-all text-[#111827]"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#111827] cursor-pointer"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Row 2: Clean Organized Tags Rail with Active Results Count & Quick Reset */}
-          <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#F1F3F6] text-xs">
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 flex-1 min-w-0">
-              <span className="text-[11px] font-bold text-[#6B7280] shrink-0 mr-1 flex items-center gap-1">
-                <Tag className="w-3 h-3 text-[#7C3AED]" />
-                Tags:
-              </span>
-
+        {/* Row 2: Unified, Clean Filter Bar (No clutter, No messy line-by-line tags) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2.5 border-t border-[#F1F3F6]">
+          {/* Status Filter Tabs (Segmented) */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {[
+              { id: "all", label: "All Items", count: checkIns.length },
+              {
+                id: "review",
+                label: "In Review (72h SLA)",
+                count: checkIns.filter((c) => c.status === "review").length,
+                dot: "bg-amber-500",
+              },
+              {
+                id: "verified",
+                label: "Verified",
+                count: checkIns.filter((c) => c.status === "verified").length,
+                dot: "bg-emerald-500",
+              },
+              {
+                id: "achievements",
+                label: "Milestones",
+                count: checkIns.filter((c) => c.isMilestoneAchievement).length,
+              },
+            ].map((pill) => (
               <button
-                onClick={() => setSelectedTag("all")}
+                key={pill.id}
+                onClick={() => setStatusFilter(pill.id as typeof statusFilter)}
                 className={cn(
-                  "px-2 py-0.5 rounded-md text-[11px] font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1 border",
-                  selectedTag === "all"
-                    ? "bg-[#111827] text-white border-[#111827]"
-                    : "bg-[#F8F9FA] text-[#4B5563] border-[#E5E7EB] hover:bg-[#E5E7EB]"
+                  "px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer flex items-center gap-1.5 border font-medium",
+                  statusFilter === pill.id
+                    ? "bg-[#111827] text-white font-semibold border-[#111827] shadow-xs"
+                    : "bg-[#F8F9FA] text-[#4B5563] border-[#E5E7EB] hover:bg-[#E5E7EB] hover:text-[#111827]"
                 )}
               >
-                <span>#All</span>
-                <span className={cn("text-[9px] font-mono px-1 rounded-full", selectedTag === "all" ? "bg-white/20 text-white" : "bg-[#E5E7EB] text-[#4B5563]")}>
-                  {checkIns.length}
+                {pill.dot && <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", pill.dot)} />}
+                <span>{pill.label}</span>
+                <span
+                  className={cn(
+                    "text-[10px] font-mono px-1.5 py-0.2 rounded-full",
+                    statusFilter === pill.id ? "bg-white/20 text-white font-bold" : "bg-[#E5E7EB] text-[#4B5563]"
+                  )}
+                >
+                  {pill.count}
                 </span>
               </button>
+            ))}
+          </div>
 
-              {allUniqueTags.map(({ tag, count }) => (
-                <button
-                  key={tag}
-                  onClick={() => setSelectedTag(selectedTag === tag ? "all" : tag)}
-                  className={cn(
-                    "px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1 border",
-                    selectedTag === tag
-                      ? "bg-[#7C3AED] text-white font-bold border-[#7C3AED] shadow-2xs"
-                      : "bg-[#FAF5FF] text-[#6B21A8] border-[#E9D5FF] hover:bg-[#F3E8FF]"
-                  )}
-                >
-                  <span>#{tag}</span>
-                  <span className={cn("text-[9px] font-mono px-1 rounded-full", selectedTag === tag ? "bg-white/30 text-white" : "bg-[#E9D5FF] text-[#6B21A8]")}>
-                    {count}
-                  </span>
-                </button>
-              ))}
+          {/* Right: Media Switcher & Unified Search */}
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            {/* Media Type Filter */}
+            <div className="flex items-center bg-[#F4F5F7] border border-[#E5E7EB] rounded-lg p-0.5 text-xs font-semibold text-[#4B5563] shrink-0">
+              <button
+                onClick={() => setTypeFilter("all")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md cursor-pointer transition-all",
+                  typeFilter === "all" ? "bg-white text-[#111827] shadow-2xs font-bold" : "hover:text-[#111827]"
+                )}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setTypeFilter("loom")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md cursor-pointer flex items-center gap-1 transition-all",
+                  typeFilter === "loom" ? "bg-white text-[#111827] shadow-2xs font-bold" : "hover:text-[#111827]"
+                )}
+              >
+                <Video className="w-3 h-3 text-[#7C3AED]" />
+                <span>Loom</span>
+              </button>
+              <button
+                onClick={() => setTypeFilter("git")}
+                className={cn(
+                  "px-2.5 py-1 rounded-md cursor-pointer flex items-center gap-1 transition-all",
+                  typeFilter === "git" ? "bg-white text-[#111827] shadow-2xs font-bold" : "hover:text-[#111827]"
+                )}
+              >
+                <GitCommit className="w-3 h-3 text-[#0369A1]" />
+                <span>Commits</span>
+              </button>
             </div>
 
-            {/* Results count & reset filters */}
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="text-[11px] text-[#6B7280] font-mono hidden md:inline">
-                {filteredCheckIns.length} of {checkIns.length} deliverables
-              </span>
-
-              {(statusFilter !== "all" || milestoneFilter !== "all" || typeFilter !== "all" || selectedTag !== "all" || searchQuery.trim().length > 0) && (
+            {/* Search Bar */}
+            <div className="relative w-full sm:w-60 shrink-0">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
+              <input
+                type="text"
+                placeholder="Search commits, Loom, tags..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full text-xs bg-[#F8F9FA] border border-[#E5E7EB] focus:border-[#0C66E4] focus:bg-white rounded-lg pl-8 pr-7 py-1.5 outline-hidden transition-all text-[#111827]"
+              />
+              {searchQuery && (
                 <button
-                  onClick={() => {
-                    setStatusFilter("all");
-                    setMilestoneFilter("all");
-                    setTypeFilter("all");
-                    setSelectedTag("all");
-                    setSearchQuery("");
-                  }}
-                  className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-0.5 rounded-md transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#111827] cursor-pointer"
                 >
-                  <X className="w-3 h-3" />
-                  <span>Reset All</span>
+                  <X className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
+
+            {/* Clear Filters Indicator (only if active) */}
+            {(statusFilter !== "all" || typeFilter !== "all" || selectedTag !== "all" || searchQuery.trim().length > 0) && (
+              <button
+                onClick={() => {
+                  setStatusFilter("all");
+                  setMilestoneFilter("all");
+                  setTypeFilter("all");
+                  setSelectedTag("all");
+                  setSearchQuery("");
+                }}
+                className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-1 rounded-md transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                title="Reset all filters"
+              >
+                <X className="w-3 h-3" />
+                <span>Reset</span>
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Optional Active Tag Badge (Only displayed if user clicked a specific tag on a card) */}
+        {selectedTag !== "all" && (
+          <div className="flex items-center gap-2 pt-1 text-xs">
+            <span className="text-[#6B7280] text-[11px]">Filtered by tag:</span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-mono font-semibold bg-[#EDE9FE] text-[#6D28D9] border border-[#DDD6FE] px-2 py-0.5 rounded-md">
+              #{selectedTag}
+              <button
+                onClick={() => setSelectedTag("all")}
+                className="hover:text-black cursor-pointer ml-0.5"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* ========================================================================= */}
