@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Badge } from "./badge";
 import { Button } from "./button";
-import { Card } from "./card";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -26,9 +25,7 @@ import {
   X,
   ExternalLink,
   ChevronRight,
-  Layers,
   History,
-  TrendingUp,
 } from "lucide-react";
 
 export interface TimelineMilestone {
@@ -246,9 +243,9 @@ export function MilestoneProjectTimeline({
   const [selectedMilestoneId, setSelectedMilestoneId] = useState<string>("m2");
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
-  // Progressive Disclosure Slide-Over Drawer
-  const [showDetailDrawer, setShowDetailDrawer] = useState<boolean>(false);
-  const [drawerTab, setDrawerTab] = useState<"overview" | "iterations" | "proof">("overview");
+  // Centered Detail Popup Modal (Replacing side-drawer)
+  const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
+  const [modalTab, setModalTab] = useState<"overview" | "iterations" | "proof">("overview");
 
   // Contract & Mutual Agreement State
   const [agreementStatus, setAgreementStatus] = useState<"agreed" | "draft_proposed" | "amendment_pending">("agreed");
@@ -477,18 +474,18 @@ export function MilestoneProjectTimeline({
     showToast("Updated timeline proposal saved. Both parties must sign to lock the schedule.");
   };
 
-  const openMilestoneDrawer = (id: string, initialTab: "overview" | "iterations" | "proof" = "overview") => {
+  const openMilestoneModal = (id: string, initialTab: "overview" | "iterations" | "proof" = "overview") => {
     setSelectedMilestoneId(id);
-    setDrawerTab(initialTab);
-    setShowDetailDrawer(true);
+    setModalTab(initialTab);
+    setShowDetailModal(true);
   };
 
   return (
-    <div className={cn("flex flex-col gap-3.5 h-full overflow-y-auto custom-scrollbar", className)}>
+    <div className={cn("flex flex-col gap-3 h-full min-h-0 overflow-hidden", className)}>
       {/* ========================================================================= */}
       {/* 1. UNIFIED STREAMLINED TOP TOOLBAR & STATUS BAR                           */}
       {/* ========================================================================= */}
-      <div className="bg-white rounded-xl border border-black/[0.06] shadow-[0px_2px_8px_rgba(0,0,0,0.03)] p-4 flex flex-col gap-3 shrink-0">
+      <div className="bg-white rounded-xl border border-black/[0.06] shadow-[0px_2px_8px_rgba(0,0,0,0.03)] p-3.5 sm:p-4 flex flex-col gap-3 shrink-0">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Left: Title, Overall Progress & Contract Signature */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -631,7 +628,7 @@ export function MilestoneProjectTimeline({
           </div>
 
           <span className="text-[11px] font-sans text-[#6B7280] hidden md:inline">
-            💡 Click any milestone bar or phase card to view deliverables checklist and iteration logs.
+            💡 Click any milestone bar to view deliverables, contractual revision limits, and proof files in the popup dialog.
           </span>
         </div>
       </div>
@@ -640,7 +637,7 @@ export function MilestoneProjectTimeline({
       {/* 2. PENDING AMENDMENT NOTIFICATION BANNER (if active)                      */}
       {/* ========================================================================= */}
       {pendingAmendment && agreementStatus === "amendment_pending" && (
-        <div className="bg-[#FFFBEB] border border-[#FDE68A] p-3.5 rounded-xl shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in shrink-0">
+        <div className="bg-[#FFFBEB] border border-[#FDE68A] p-3 rounded-xl shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in shrink-0">
           <div className="flex items-start gap-2.5">
             <AlertTriangle className="w-4 h-4 text-[#D97706] shrink-0 mt-0.5" />
             <div className="text-xs">
@@ -686,42 +683,47 @@ export function MilestoneProjectTimeline({
       )}
 
       {/* ========================================================================= */}
-      {/* 3. VISUAL MONTH ROADMAP GANTT TRACK (Clean, Crisp & Uncluttered)          */}
+      {/* 3. VISUAL MONTH ROADMAP GANTT TRACK (Tall, Full-Height & Spacious)         */}
       {/* ========================================================================= */}
-      <div className="bg-white rounded-xl border border-black/[0.06] shadow-[0px_2px_8px_rgba(0,0,0,0.03)] overflow-hidden flex flex-col shrink-0">
-        <div className="p-3.5 border-b border-[#F1F3F6] flex items-center justify-between">
+      <div className="bg-white rounded-xl border border-black/[0.06] shadow-[0px_2px_8px_rgba(0,0,0,0.03)] overflow-hidden flex-1 min-h-0 flex flex-col">
+        {/* Track Header */}
+        <div className="p-3 sm:px-4 sm:py-3 border-b border-[#F1F3F6] flex items-center justify-between shrink-0 bg-[#FAFBFD]">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#2D6606]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#2D6606] shadow-2xs" />
             <h2 className="text-sm font-bold text-[#111827]">Visual Schedule Track</h2>
-            <span className="text-xs text-[#6B7280] font-mono">• Horizontal Month Gantt</span>
+            <span className="text-xs text-[#6B7280] font-mono hidden sm:inline">• Horizontal Month Gantt Roadmap</span>
           </div>
-          <span className="text-xs text-[#6B7280]">
-            Showing {filteredMilestones.length} milestones
-          </span>
+          <div className="flex items-center gap-2 text-xs text-[#6B7280]">
+            <span className="bg-[#F4F5F7] px-2 py-0.5 rounded font-mono font-medium text-[#111827]">
+              {filteredMilestones.length} Milestones
+            </span>
+            <span className="hidden sm:inline">• Click any row or bar to inspect details</span>
+          </div>
         </div>
 
-        <div className="overflow-x-auto custom-scrollbar">
-          <div className="min-w-[800px]">
-            {/* Month Axis Header */}
+        {/* Scrollable Gantt Canvas */}
+        <div className="flex-1 min-h-0 overflow-auto custom-scrollbar flex flex-col">
+          <div className="min-w-[860px] flex-1 flex flex-col">
+            {/* Month Axis Header (Sticky at top) */}
             <div
-              className="grid border-b border-[#E5E7EB] bg-[#F8F9FA] text-center text-xs font-bold text-[#4B5563] select-none"
+              className="grid border-b border-[#E5E7EB] bg-[#F8F9FA] text-center text-xs font-bold text-[#4B5563] select-none sticky top-0 z-20 shrink-0"
               style={{
-                gridTemplateColumns: `160px repeat(${totalMonths}, minmax(80px, 1fr))`,
+                gridTemplateColumns: `210px repeat(${totalMonths}, minmax(90px, 1fr))`,
               }}
             >
-              <div className="py-2.5 px-3 border-r border-[#E5E7EB] text-[11px] text-[#6B7280] font-bold text-left bg-[#F4F5F7]">
-                Milestone Scope
+              <div className="py-2.5 px-3.5 border-r border-[#E5E7EB] text-[11px] text-[#6B7280] font-bold text-left bg-[#F4F5F7]">
+                Milestone Scope & Budget
               </div>
               {activeMonthList.map((m) => (
                 <div
                   key={m.monthIndex}
                   className={cn(
-                    "py-2 px-1 border-r border-[#E5E7EB] last:border-r-0 flex flex-col items-center justify-center gap-0.5",
+                    "py-2 px-1.5 border-r border-[#E5E7EB] last:border-r-0 flex flex-col items-center justify-center gap-0.5",
                     m.isCurrent && "bg-[#EDE9FE] text-[#5B21B6] font-black"
                   )}
                 >
                   {m.isCurrent && (
-                    <span className="text-[8px] bg-[#88D635] text-[#0A2600] px-1 rounded font-black tracking-wider leading-none shadow-2xs">
+                    <span className="text-[8px] bg-[#88D635] text-[#0A2600] px-1.5 rounded font-black tracking-wider leading-none shadow-2xs">
                       CURRENT
                     </span>
                   )}
@@ -731,8 +733,8 @@ export function MilestoneProjectTimeline({
               ))}
             </div>
 
-            {/* Milestone Rows */}
-            <div className="divide-y divide-[#F1F3F6]">
+            {/* Milestone Rows (Spacious, filling the height, nicely spaced) */}
+            <div className="divide-y divide-[#F1F3F6] flex-1">
               {filteredMilestones.map((m) => {
                 const isSelected = m.id === selectedMilestoneId;
                 const isHardCapped = m.usedIterations >= m.maxIterations;
@@ -740,32 +742,41 @@ export function MilestoneProjectTimeline({
                 return (
                   <div
                     key={m.id}
-                    onClick={() => openMilestoneDrawer(m.id, "overview")}
+                    onClick={() => openMilestoneModal(m.id, "overview")}
                     className={cn(
-                      "grid items-center hover:bg-[#FAFBFD] transition-colors cursor-pointer group min-h-[56px]",
-                      isSelected && "bg-[#F0FDF4]/60"
+                      "grid items-center hover:bg-[#FAFBFD] transition-all cursor-pointer group min-h-[76px] sm:min-h-[84px]",
+                      isSelected && "bg-[#F0FDF4]/50"
                     )}
                     style={{
-                      gridTemplateColumns: `160px repeat(${totalMonths}, minmax(80px, 1fr))`,
+                      gridTemplateColumns: `210px repeat(${totalMonths}, minmax(90px, 1fr))`,
                     }}
                   >
                     {/* Left Meta Column */}
-                    <div className="p-2.5 border-r border-[#E5E7EB] bg-[#FAFAFA] flex flex-col justify-center h-full">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="font-bold text-xs text-[#111827]">{m.number}</span>
-                        <span className="text-[10px] font-mono font-bold text-[#166534] bg-[#DCFCE7] px-1.5 py-0.5 rounded">
+                    <div className="p-3 border-r border-[#E5E7EB] bg-[#FAFAFA] group-hover:bg-[#F4F5F7] transition-colors flex flex-col justify-center h-full">
+                      <div className="flex items-center justify-between gap-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-6 h-6 rounded-md bg-[#111827] text-[#88D635] font-mono font-bold text-xs flex items-center justify-center">
+                            {m.number}
+                          </span>
+                          <span className="font-bold text-xs text-[#111827] group-hover:text-[#2D6606] transition-colors truncate max-w-[85px]">
+                            {m.number}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-[#166534] bg-[#DCFCE7] px-2 py-0.5 rounded">
                           {formatCurrency(m.escrowAmount)}
                         </span>
                       </div>
-                      <span className="text-[11px] text-[#4B5563] truncate font-medium mt-0.5" title={m.title}>
+
+                      <span className="text-xs font-semibold text-[#111827] truncate mt-1" title={m.title}>
                         {m.title}
                       </span>
-                      <div className="flex items-center justify-between mt-1 text-[9px] text-[#6B7280]">
-                        <span>{m.progressPercent}% Done</span>
+
+                      <div className="flex items-center justify-between mt-1 text-[10px] text-[#6B7280]">
+                        <span className="font-mono text-[#4B5563]">{m.progressPercent}% Complete</span>
                         <span
                           className={cn(
-                            "font-mono px-1 rounded",
-                            isHardCapped ? "bg-[#FEE2E2] text-[#991B1B] font-bold" : "bg-[#F3F4F6]"
+                            "font-mono px-1.5 py-0.5 rounded text-[9px] font-semibold",
+                            isHardCapped ? "bg-[#FEE2E2] text-[#991B1B] font-bold" : "bg-[#F3F4F6] text-[#4B5563]"
                           )}
                         >
                           Iter: {m.usedIterations}/{m.maxIterations}
@@ -775,55 +786,65 @@ export function MilestoneProjectTimeline({
 
                     {/* Gantt Bar spanning startMonth to endMonth */}
                     <div
-                      className="relative h-full flex items-center px-1"
+                      className="relative h-full flex items-center px-2 py-2"
                       style={{
                         gridColumn: `${m.startMonth + 1} / span ${Math.max(1, m.endMonth - m.startMonth + 1)}`,
                       }}
                     >
                       <div
                         className={cn(
-                          "w-full h-10 rounded-lg p-2 flex items-center justify-between gap-2 shadow-2xs transition-all border group-hover:scale-[1.01]",
+                          "w-full h-14 rounded-xl p-3 flex items-center justify-between gap-3 shadow-xs transition-all border group-hover:shadow-md group-hover:scale-[1.008]",
                           m.status === "completed"
-                            ? "bg-gradient-to-r from-[#DCFCE7] to-[#BBF7D0] border-[#86EFAC] text-[#166534]"
+                            ? "bg-gradient-to-r from-[#DCFCE7] via-[#D1FAE5] to-[#BBF7D0] border-[#86EFAC] text-[#166534]"
                             : m.status === "in_review"
-                            ? "bg-gradient-to-r from-[#FEF3C7] to-[#FDE68A] border-[#FCD34D] text-[#92400E]"
+                            ? "bg-gradient-to-r from-[#FEF3C7] via-[#FDE68A] to-[#FCD34D] border-[#FBBF24] text-[#92400E]"
                             : m.status === "in_progress"
-                            ? "bg-gradient-to-r from-[#DBEAFE] to-[#BFDBFE] border-[#93C5FD] text-[#1E40AF]"
-                            : "bg-gradient-to-r from-[#F1F5F9] to-[#E2E8F0] border-[#CBD5E1] text-[#475569]",
-                          isSelected && "ring-2 ring-[#88D635] shadow-sm"
+                            ? "bg-gradient-to-r from-[#DBEAFE] via-[#BFDBFE] to-[#93C5FD] border-[#60A5FA] text-[#1E40AF]"
+                            : "bg-gradient-to-r from-[#F1F5F9] via-[#E2E8F0] to-[#CBD5E1] border-[#94A3B8] text-[#475569]",
+                          isSelected && "ring-2 ring-[#88D635] shadow-md"
                         )}
                       >
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="font-bold text-xs shrink-0">{m.number}:</span>
-                          <span className="text-xs font-semibold truncate">{m.title}</span>
+                        {/* Left: Milestone Number, Title & Date range */}
+                        <div className="flex flex-col min-w-0 justify-center">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="font-bold text-xs shrink-0">{m.number}:</span>
+                            <span className="text-xs font-bold truncate tracking-tight">{m.title}</span>
+                          </div>
+                          <span className="text-[10px] font-mono opacity-85 truncate mt-0.5">
+                            {m.startDate} – {m.endDate}
+                          </span>
                         </div>
 
+                        {/* Right: Status Pill, Progress & View Trigger */}
                         <div className="flex items-center gap-2 shrink-0">
                           {m.status === "completed" && (
-                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase bg-white/70 px-1.5 py-0.5 rounded">
-                              <CheckCircle2 className="w-3 h-3 text-[#166534]" />
-                              Done
+                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase bg-white/80 px-2 py-1 rounded-md shadow-2xs">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#166534]" />
+                              Completed
                             </span>
                           )}
                           {m.status === "in_review" && (
-                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase bg-white/70 px-1.5 py-0.5 rounded text-[#92400E]">
-                              <Clock className="w-3 h-3" />
-                              Review
+                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase bg-white/80 px-2 py-1 rounded-md text-[#92400E] shadow-2xs">
+                              <Clock className="w-3.5 h-3.5" />
+                              In Review
                             </span>
                           )}
                           {m.status === "in_progress" && (
-                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase bg-white/70 px-1.5 py-0.5 rounded text-[#1E40AF]">
-                              <Flame className="w-3 h-3 text-[#2563EB]" />
-                              {m.progressPercent}%
+                            <span className="flex items-center gap-1 text-[10px] font-bold uppercase bg-white/80 px-2 py-1 rounded-md text-[#1E40AF] shadow-2xs">
+                              <Flame className="w-3.5 h-3.5 text-[#2563EB]" />
+                              {m.progressPercent}% Active
                             </span>
                           )}
                           {m.status === "proposed" && (
-                            <span className="text-[10px] font-medium bg-white/70 px-1.5 py-0.5 rounded text-[#475569]">
-                              M{m.startMonth}–M{m.endMonth}
+                            <span className="text-[10px] font-medium bg-white/80 px-2 py-1 rounded-md text-[#475569] shadow-2xs">
+                              Month {m.startMonth}–{m.endMonth}
                             </span>
                           )}
 
-                          <ChevronRight className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                          <div className="hidden sm:flex items-center gap-1 bg-white/90 text-[#111827] px-2 py-1 rounded-md text-[10px] font-semibold group-hover:bg-white shadow-2xs transition-colors">
+                            <span>Details</span>
+                            <ChevronRight className="w-3 h-3 text-[#6B7280]" />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -836,125 +857,15 @@ export function MilestoneProjectTimeline({
       </div>
 
       {/* ========================================================================= */}
-      {/* 4. PHASE CARDS GRID (Clean, Scannable & User Friendly)                    */}
+      {/* 4. CENTERED DETAIL POPUP MODAL (Replacing Unwanted Side Panel)             */}
       {/* ========================================================================= */}
-      <div className="flex flex-col gap-2.5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-[#2D6606]" />
-            <h2 className="text-sm font-bold text-[#111827]">Milestone Phase Breakdown</h2>
-          </div>
-          <span className="text-xs text-[#6B7280]">
-            Click any phase to open detailed deliverables & revision history
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {milestones.map((m) => {
-            const isSelected = m.id === selectedMilestoneId;
-            const completedCount = m.deliverables.filter((d) => d.completed).length;
-
-            return (
-              <div
-                key={m.id}
-                onClick={() => openMilestoneDrawer(m.id, "overview")}
-                className={cn(
-                  "p-4 rounded-xl border bg-white shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between gap-3 group relative overflow-hidden",
-                  isSelected
-                    ? "border-[#88D635] ring-2 ring-[#88D635]/30"
-                    : "border-black/[0.06] hover:border-[#CBD5E1]"
-                )}
-              >
-                {/* Top Badge & Number */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-lg bg-[#111827] text-[#88D635] font-mono font-bold text-xs flex items-center justify-center">
-                      {m.number}
-                    </span>
-                    <div>
-                      <h3 className="font-bold text-xs text-[#111827] group-hover:text-[#2D6606] transition-colors line-clamp-1">
-                        {m.title}
-                      </h3>
-                      <span className="text-[11px] text-[#6B7280] font-mono">
-                        {m.startDate} – {m.endDate}
-                      </span>
-                    </div>
-                  </div>
-
-                  <Badge
-                    variant={
-                      m.status === "completed"
-                        ? "lime"
-                        : m.status === "in_review"
-                        ? "dark"
-                        : "outline"
-                    }
-                    className="text-[10px] capitalize shrink-0 font-bold"
-                  >
-                    {m.status.replace("_", " ")}
-                  </Badge>
-                </div>
-
-                {/* Description snippet */}
-                <p className="text-xs text-[#4B5563] line-clamp-2 leading-relaxed">
-                  {m.description}
-                </p>
-
-                {/* Progress bar */}
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center justify-between text-[11px] font-semibold text-[#6B7280]">
-                    <span>Deliverables ({completedCount}/{m.deliverables.length})</span>
-                    <span className="font-mono text-[#111827]">{m.progressPercent}%</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
-                    <div
-                      className={cn(
-                        "h-full rounded-full transition-all duration-300",
-                        m.status === "completed" ? "bg-[#2D6606]" : "bg-[#88D635]"
-                      )}
-                      style={{ width: `${m.progressPercent}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Footer: Escrow & Revision Quota */}
-                <div className="pt-2 border-t border-[#F1F3F6] flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#166534] font-mono bg-[#DCFCE7] px-2 py-0.5 rounded">
-                      {formatCurrency(m.escrowAmount)}
-                    </span>
-                    <span className="text-[10px] text-[#6B7280] font-mono">
-                      Revisions: {m.usedIterations}/{m.maxIterations}
-                    </span>
-                  </div>
-
-                  <span className="text-[11px] font-semibold text-[#2D6606] flex items-center gap-0.5 group-hover:translate-x-1 transition-transform">
-                    Inspect <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ========================================================================= */}
-      {/* 5. PROGRESSIVE DISCLOSURE: SLIDE-OVER DETAIL DRAWER                       */}
-      {/* ========================================================================= */}
-      {showDetailDrawer && selectedMilestone && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
-          {/* Glass Backdrop */}
-          <div
-            onClick={() => setShowDetailDrawer(false)}
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
-          />
-
-          {/* Slide-Over Drawer Panel */}
-          <div className="relative w-full max-w-xl bg-white h-full shadow-2xl border-l border-black/[0.08] flex flex-col z-10 animate-in slide-in-from-right duration-250">
-            {/* Drawer Header */}
+      {showDetailModal && selectedMilestone && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] shadow-2xl border border-black/[0.08] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b border-[#F1F3F6] flex items-start justify-between gap-3 bg-[#FAFBFD] shrink-0">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#111827] text-[#88D635] font-mono font-bold text-sm flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-[#111827] text-[#88D635] font-mono font-bold text-sm flex items-center justify-center shrink-0 shadow-2xs">
                   {selectedMilestone.number}
                 </div>
                 <div>
@@ -972,21 +883,23 @@ export function MilestoneProjectTimeline({
                   <div className="flex items-center gap-2 mt-1 text-xs text-[#6B7280] font-mono">
                     <span>{selectedMilestone.startDate} – {selectedMilestone.endDate}</span>
                     <span>•</span>
-                    <span className="font-bold text-[#166534]">{formatCurrency(selectedMilestone.escrowAmount)} Locked</span>
+                    <span className="font-bold text-[#166534] bg-[#DCFCE7] px-2 py-0.5 rounded">
+                      {formatCurrency(selectedMilestone.escrowAmount)} Locked in Escrow
+                    </span>
                   </div>
                 </div>
               </div>
 
               <button
-                onClick={() => setShowDetailDrawer(false)}
+                onClick={() => setShowDetailModal(false)}
                 className="p-1.5 rounded-lg text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F4F6] transition-colors cursor-pointer shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Drawer Tab Navigation */}
-            <div className="flex items-center border-b border-[#F1F3F6] bg-white px-4 shrink-0 text-xs font-semibold">
+            {/* Modal Tab Navigation */}
+            <div className="flex items-center border-b border-[#F1F3F6] bg-white px-5 shrink-0 text-xs font-semibold">
               {[
                 { id: "overview", label: "Overview & Deliverables", icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
                 { id: "iterations", label: `Revisions (${selectedMilestone.usedIterations}/${selectedMilestone.maxIterations})`, icon: <History className="w-3.5 h-3.5" /> },
@@ -994,10 +907,10 @@ export function MilestoneProjectTimeline({
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setDrawerTab(tab.id as typeof drawerTab)}
+                  onClick={() => setModalTab(tab.id as typeof modalTab)}
                   className={cn(
                     "flex items-center gap-1.5 py-3 px-3.5 border-b-2 transition-all cursor-pointer whitespace-nowrap",
-                    drawerTab === tab.id
+                    modalTab === tab.id
                       ? "border-[#2D6606] text-[#111827] font-bold"
                       : "border-transparent text-[#6B7280] hover:text-[#111827]"
                   )}
@@ -1008,10 +921,10 @@ export function MilestoneProjectTimeline({
               ))}
             </div>
 
-            {/* Drawer Body (Scrollable) */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-5 flex flex-col gap-4 text-xs custom-scrollbar">
+            {/* Modal Body (Scrollable) */}
+            <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4 text-xs custom-scrollbar">
               {/* TAB 1: OVERVIEW & DELIVERABLES */}
-              {drawerTab === "overview" && (
+              {modalTab === "overview" && (
                 <div className="flex flex-col gap-4">
                   {/* Scope Description */}
                   <div className="p-3.5 bg-[#F9FAFB] rounded-xl border border-black/[0.04]">
@@ -1028,11 +941,11 @@ export function MilestoneProjectTimeline({
                         Deliverables Checklist ({selectedMilestone.deliverables.filter((d) => d.completed).length} of {selectedMilestone.deliverables.length})
                       </span>
                       <span className="text-[11px] text-[#6B7280]">
-                        Click item to toggle completion
+                        Click any item to toggle status
                       </span>
                     </div>
 
-                    <div className="divide-y divide-[#F1F3F6] border border-[#E5E7EB] rounded-xl overflow-hidden bg-white">
+                    <div className="divide-y divide-[#F1F3F6] border border-[#E5E7EB] rounded-xl overflow-hidden bg-white shadow-2xs">
                       {selectedMilestone.deliverables.map((d) => (
                         <div
                           key={d.id}
@@ -1086,7 +999,7 @@ export function MilestoneProjectTimeline({
               )}
 
               {/* TAB 2: REVISIONS & ITERATION QUOTA */}
-              {drawerTab === "iterations" && (
+              {modalTab === "iterations" && (
                 <div className="flex flex-col gap-4">
                   {/* Quota Banner */}
                   <div className="p-4 bg-gradient-to-r from-[#F0FDF4] to-[#DCFCE7] border border-[#86EFAC] rounded-xl flex items-center justify-between gap-3">
@@ -1130,7 +1043,7 @@ export function MilestoneProjectTimeline({
                         <Clock className="w-6 h-6 mx-auto mb-1.5 text-[#9CA3AF]" />
                         <span className="font-semibold block text-xs">No Revisions Logged Yet</span>
                         <p className="text-[11px] text-[#9CA3AF] mt-0.5">
-                          First submission is in review. Milestone has {selectedMilestone.maxIterations} contractual revisions available.
+                          First submission is currently in progress/review. Milestone has {selectedMilestone.maxIterations} contractual revisions available.
                         </p>
                       </div>
                     ) : (
@@ -1171,7 +1084,7 @@ export function MilestoneProjectTimeline({
               )}
 
               {/* TAB 3: PROOF ARTIFACTS & ACTIVITY */}
-              {drawerTab === "proof" && (
+              {modalTab === "proof" && (
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-2">
                     <span className="font-bold text-[#111827] text-xs">
@@ -1208,7 +1121,7 @@ export function MilestoneProjectTimeline({
                                 e.preventDefault();
                                 showToast(`Opened proof artifact: ${art.title}`);
                               }}
-                              className="px-2.5 py-1 rounded-md bg-[#F4F5F7] hover:bg-[#E5E7EB] text-xs font-semibold text-[#111827] flex items-center gap-1 shrink-0 transition-colors"
+                              className="px-2.5 py-1 rounded-md bg-[#F4F5F7] hover:bg-[#E5E7EB] text-xs font-semibold text-[#111827] flex items-center gap-1 shrink-0 transition-colors cursor-pointer"
                             >
                               <span>View</span>
                               <ExternalLink className="w-3 h-3 text-[#6B7280]" />
@@ -1246,7 +1159,7 @@ export function MilestoneProjectTimeline({
               )}
             </div>
 
-            {/* Drawer Footer Actions */}
+            {/* Modal Footer Actions */}
             <div className="p-4 border-t border-[#F1F3F6] flex items-center justify-between gap-3 bg-[#FAFBFD] shrink-0">
               <span className="text-xs text-[#6B7280] font-mono">
                 {selectedMilestone.number} • {selectedMilestone.status.toUpperCase()}
@@ -1256,10 +1169,10 @@ export function MilestoneProjectTimeline({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowDetailDrawer(false)}
+                  onClick={() => setShowDetailModal(false)}
                   className="text-xs"
                 >
-                  Close Drawer
+                  Close
                 </Button>
                 {selectedMilestone.status === "in_review" && (
                   <Button
@@ -1271,7 +1184,7 @@ export function MilestoneProjectTimeline({
                           m.id === selectedMilestone.id ? { ...m, status: "completed", progressPercent: 100 } : m
                         )
                       );
-                      setShowDetailDrawer(false);
+                      setShowDetailModal(false);
                       showToast(`Milestone ${selectedMilestone.number} approved! Escrow released.`);
                     }}
                     className="text-xs font-bold gap-1 bg-[#15803D] hover:bg-[#166534] text-white"
@@ -1287,7 +1200,7 @@ export function MilestoneProjectTimeline({
       )}
 
       {/* ========================================================================= */}
-      {/* 6. MODAL: TIMELINE SETTER (Configure Spans, Months & Iteration Limits)     */}
+      {/* 5. MODAL: TIMELINE SETTER (Configure Spans, Months & Iteration Limits)     */}
       {/* ========================================================================= */}
       {showTimelineSetterModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1467,7 +1380,7 @@ export function MilestoneProjectTimeline({
       )}
 
       {/* ========================================================================= */}
-      {/* 7. MODAL: MUTUAL AMENDMENT REQUEST                                         */}
+      {/* 6. MODAL: MUTUAL AMENDMENT REQUEST                                         */}
       {/* ========================================================================= */}
       {showAmendmentModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
@@ -1558,7 +1471,7 @@ export function MilestoneProjectTimeline({
       )}
 
       {/* ========================================================================= */}
-      {/* 8. MODAL: SUBMIT REVISION / ITERATION                                     */}
+      {/* 7. MODAL: SUBMIT REVISION / ITERATION                                     */}
       {/* ========================================================================= */}
       {showIterationModal && selectedMilestone && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
