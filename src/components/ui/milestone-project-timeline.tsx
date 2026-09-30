@@ -743,7 +743,7 @@ export function MilestoneProjectTimeline({
           <div className="min-w-[1340px] flex-1 flex flex-col">
             {/* Month Axis Header (Sticky at top) */}
             <div
-              className="grid border-b border-[#E5E7EB] bg-[#F8F9FA] text-center text-xs font-bold text-[#4B5563] select-none sticky top-0 z-20 shrink-0"
+              className="grid border-b border-[#E5E7EB] bg-[#F8F9FA] text-center text-xs font-bold text-[#4B5563] select-none sticky top-0 z-40 shrink-0 shadow-xs"
               style={{
                 gridTemplateColumns: `270px repeat(${totalMonths}, minmax(130px, 1fr))`,
               }}

@@ -146,7 +146,7 @@ export function RealTimeIndicator({
     return (
       <div
         style={{ top: `${topPx}px` }}
-        className="absolute left-0 right-0 z-30 pointer-events-none flex items-center transition-all duration-700 ease-out"
+        className="absolute left-0 right-0 z-10 pointer-events-none flex items-center transition-all duration-700 ease-out"
       >
         <div style={{ width: `${timeColWidth}px` }} className="text-right pr-2 shrink-0 flex items-center justify-end">
           <span className="text-[10px] font-mono font-bold text-[#7C3AED] bg-[#F5F3FF] px-1.5 py-0.5 rounded border border-[#DDD6FE] shadow-2xs">
@@ -168,7 +168,7 @@ export function RealTimeIndicator({
   return (
     <div
       style={{ top: `${topPx}px` }}
-      className="absolute left-0 right-0 z-30 pointer-events-none flex items-center transition-all duration-700 ease-out"
+      className="absolute left-0 right-0 z-10 pointer-events-none flex items-center transition-all duration-700 ease-out"
     >
       <div style={{ width: `${timeColWidth}px` }} className="text-right pr-2 shrink-0 flex items-center justify-end">
         <span className="text-[10px] font-mono font-bold text-[#7C3AED] bg-[#F5F3FF] px-1.5 py-0.5 rounded border border-[#DDD6FE] shadow-2xs">
@@ -2120,7 +2120,7 @@ export function MilestoneEscrowRoom({
                   {/* Hourly Rows Container with Sticky Header - Unified scroll context ensures straight column lines */}
                   <div ref={weekScrollRef} className="relative divide-y divide-[#F1F3F6] overflow-y-auto flex-1 min-h-0 custom-scrollbar">
                     {/* Days Header - Sticky at the top INSIDE the scroll container for 100% column line alignment */}
-                    <div className="grid grid-cols-[75px_repeat(7,1fr)] border-b border-[#E5E7EB] bg-[#F8F9FA] text-center text-xs font-bold text-[#4B5563] sticky top-0 z-30 shrink-0">
+                    <div className="grid grid-cols-[75px_repeat(7,1fr)] border-b border-[#E5E7EB] bg-[#F8F9FA] text-center text-xs font-bold text-[#4B5563] sticky top-0 z-40 shrink-0 shadow-xs">
                       <div className="py-2.5 border-r border-[#E5E7EB] text-[11px] text-[#9CA3AF] flex items-center justify-center bg-[#F8F9FA]">
                         Time
                       </div>
