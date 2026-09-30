@@ -1,7 +1,5 @@
 "use client";
 
-import { MilestoneProjectTimeline } from "./milestone-project-timeline";
-
 import * as React from "react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { Badge } from "./badge";
@@ -703,7 +701,7 @@ export function MilestoneEscrowRoom({
   const isClient = role === "business";
 
   // Navigation & View Mode
-  const [viewMode, setViewMode] = React.useState<"board" | "list" | "calendar" | "timeline">("board");
+  const [viewMode, setViewMode] = React.useState<"board" | "list" | "calendar">("board");
   const [statusFilter, setStatusFilter] = React.useState<"all" | "todo" | "in_progress" | "review" | "completed">("all");
   const [searchQuery, setSearchQuery] = React.useState("");
 
@@ -1202,7 +1200,7 @@ export function MilestoneEscrowRoom({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <h2 className="text-lg font-bold tracking-tight text-[#111827] flex items-center gap-2">
-              <span>{viewMode === "calendar" ? "Delivery & Meeting Calendar" : viewMode === "timeline" ? "Milestones Project Roadmap & Timeline" : "Milestones & Escrow Delivery"}</span>
+              <span>{viewMode === "calendar" ? "Delivery & Meeting Calendar" : "Milestones & Escrow Delivery"}</span>
               <Badge variant="lime" className="text-[11px] rounded-md py-0.5 font-bold">
                 Sprint Active
               </Badge>
@@ -1250,19 +1248,6 @@ export function MilestoneEscrowRoom({
                 <CalendarIcon className="w-3.5 h-3.5 text-[#2D6606]" />
                 <span>Calendar View</span>
               </button>
-
-              <button
-                onClick={() => setViewMode("timeline")}
-                className={cn(
-                  "flex items-center gap-1.5 py-1.5 px-3 rounded-md transition-all cursor-pointer whitespace-nowrap",
-                  viewMode === "timeline"
-                    ? "bg-white text-[#111827] shadow-xs font-bold"
-                    : "hover:text-[#111827]"
-                )}
-              >
-                <CalendarDays className="w-3.5 h-3.5 text-[#2D6606]" />
-                <span>Timeline View</span>
-              </button>
             </div>
 
 
@@ -1270,7 +1255,7 @@ export function MilestoneEscrowRoom({
         </div>
 
         {/* Sub-toolbar: Dynamic for Board/List vs Calendar */}
-        {viewMode !== "calendar" && viewMode !== "timeline" ? (
+        {viewMode !== "calendar" ? (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2.5 border-t border-[#F1F3F6]">
             {/* Filter Pills */}
             <div className="flex items-center gap-1.5 flex-wrap text-xs">
@@ -2873,16 +2858,6 @@ export function MilestoneEscrowRoom({
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* 4b. VIEW 4: PROJECT ROADMAP & MILESTONE TIMELINE VIEW                     */}
-      {/* ========================================================================= */}
-      {viewMode === "timeline" && (
-        <MilestoneProjectTimeline
-          role={role}
-          showToast={showToast}
-          className="flex-1"
-        />
-      )}
 
 
       {/* ========================================================================= */}
